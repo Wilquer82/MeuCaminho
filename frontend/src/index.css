@@ -1,0 +1,100 @@
+:root {
+  --bg: #f8fafb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #297a2e;
+  --accent-soft: rgba(41, 122, 46, .14);
+  --accent2: #d97706;
+  --accent2-soft: rgba(217, 119, 6, .14);
+  --border: rgba(15, 23, 42, .08);
+  --premium: #8b5cf6;
+  --premium-soft: rgba(139, 92, 246, .12);
+  --success: #059669;
+  --danger: #dc2626;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* ===== Animações ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(.8); }
+  60% { opacity: 1; transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes premiumShine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn .3s ease forwards; }
+.bounce-in { animation: bounceIn .4s ease forwards; }
+.slide-up { animation: slideUp .35s ease forwards; }
+.flicker { animation: flicker 1.5s ease-in-out infinite; }
+
+/* ===== Scrollbar invisível ===== */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== Utilitários ===== */
+.card-tap:active { transform: scale(.98); }
+.card-tap { transition: transform .12s ease; }
+
+.gradient-premium {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6);
+  background-size: 200% 200%;
+  animation: premiumShine 3s ease infinite;
+}
+
+.hebrew-text {
+  direction: rtl;
+  font-family: 'Times New Roman', serif;
+  font-size: 18px;
+}

@@ -1,0 +1,112 @@
+const express = require('express');
+const router = express.Router();
+const { auth } = require('../middleware/auth');
+const { checkDailyLimit } = require('../middleware/rateLimit');
+const Lesson = require('../models/Lesson');
+const User = require('../models/User');
+
+// GET /api/lessons — Listar lições por categoria
+router.get('/', auth, async (req, res) => {
+  try {
+    const { category, unit } = req.query;
+    const filter = {};
+    if (category) filter.category = category;
+    if (unit) filter.unit = unit;
+
+    const lessons = await Lesson.find(filter).sort({ order: 1 });
+    res.json(lessons);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/lessons/today — Lição do dia (aplica limite diário)
+router.get('/today', auth, checkDailyLimit, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const lesson = await Lesson.findOne({
+      category: user.activeCategory,
+      isFree: true
+    }).sort({ order: 1 });
+
+    if (!lesson) {
+      return res.status(404).json({ message: 'Nenhuma lição disponível' });
+    }
+
+    res.json(lesson);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/lessons/:id — Detalhes de uma lição
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) {
+      return res.status(404).json({ message: 'Lição não encontrada' });
+    }
+    res.json(lesson);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/lessons/:id/complete — Completar lição
+router.post('/:id/complete', auth, checkDailyLimit, async (req, res) => {
+  try {
+    const lesson = await Lesson.findById(req.params.id);
+    const user = await User.findById(req.user._id);
+
+    if (!lesson) {
+      return res.status(404).json({ message: 'Lição não encontrada' });
+    }
+
+    // Verificar se já completou
+    const alreadyCompleted = lesson.completedBy.some(
+      id => id.toString() === req.user._id.toString()
+    );
+
+    if (!alreadyCompleted) {
+      lesson.completedBy.push(req.user._id);
+      await lesson.save();
+
+      // Incrementar contador diário
+      if (req.incrementLesson) {
+        await req.incrementLesson();
+        await user.save();
+      }
+
+      // Dar XP
+      user.xp += lesson.xpReward;
+
+      // Atualizar streak
+      const today = new Date().toDateString();
+      const lastActive = user.lastActive ? new Date(user.lastActive).toDateString() : null;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (lastActive === yesterday.toDateString()) {
+        user.streak++;
+      } else if (lastActive !== today) {
+        user.streak = 1;
+      }
+
+      user.lastActive = new Date();
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      xpEarned: alreadyCompleted ? 0 : lesson.xpReward,
+      newXp: user.xp,
+      newStreak: user.streak,
+      dailyLessonsCompleted: user.dailyLessonsCompleted
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+module.exports = router;
