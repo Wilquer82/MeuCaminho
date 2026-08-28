@@ -29,6 +29,7 @@ app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/theology', require('./routes/theology'));
 app.use('/api/community', require('./routes/community'));
 app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/bible', require('./routes/bible'));
 
 // Health check (para ping do cron-job.org)
 app.get('/health', (req, res) => {

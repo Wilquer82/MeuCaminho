@@ -22,6 +22,7 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Premium from './pages/Premium';
+import Bible from './pages/Bible';
 
 // Componentes
 import PaywallModal from './components/Home/PaywallModal';
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/premium" element={<PrivateRoute><Premium /></PrivateRoute>} />
+        <Route path="/bible" element={<PrivateRoute><Bible /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

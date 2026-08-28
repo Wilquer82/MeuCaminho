@@ -4,6 +4,7 @@ const navItems = [
   { to: '/', label: 'Início', icon: '🏠' },
   { to: '/streak', label: 'Ofensiva', icon: '🔥' },
   { to: '/categories', label: 'Categorias', icon: '📚' },
+  { to: '/bible', label: 'Bíblia', icon: '📖' },
   { to: '/community', label: 'Comunidade', icon: '👥' },
   { to: '/profile', label: 'Perfil', icon: '👤' }
 ];
