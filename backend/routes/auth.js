@@ -42,6 +42,9 @@ router.post('/register', async (req, res) => {
     });
 
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'E-mail já cadastrado' });
+    }
     res.status(500).json({ message: err.message });
   }
 });

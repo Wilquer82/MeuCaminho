@@ -3,9 +3,6 @@ const cors = require('cors');
 require('dotenv').config();
 const conectarDB = require('./config/db');
 
-// Conectar ao MongoDB
-conectarDB();
-
 const app = express();
 
 // Middleware globais
@@ -54,7 +51,13 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-});
+
+async function startServer() {
+  await conectarDB();
+  app.listen(PORT, () => {
+    console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  });
+}
+
+startServer();
