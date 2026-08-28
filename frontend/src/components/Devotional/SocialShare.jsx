@@ -2,15 +2,15 @@ export default function SocialShare({ devotional, lesson, xp, streak }) {
 
   const buildShareText = () => {
     if (devotional) {
-      return `"${devotional.bibleText}"\n— ${devotional.bibleReference}\n\n${devotional.title}\n\nCompartilhado do VerboVivo 📖✨`;
+      return `"${devotional.bibleText}"\n— ${devotional.bibleReference}\n\n${devotional.title}\n\nCompartilhado do Meu Caminho de Luz 📖✨`;
     }
     if (lesson) {
-      return `📖 Completei a lição "${lesson.title}" no VerboVivo!\n+${xp} XP ganhos 🔥\n#VerboVivo #Bíblia #Fé`;
+      return `📖 Completei a lição "${lesson.title}" no Meu Caminho de Luz!\n+${xp} XP ganhos 🔥\n#MeuCaminhoDeLuz #Bíblia #Fé`;
     }
     if (streak) {
-      return `🔥 ${streak} dias seguidos lendo a Bíblia!\nEstou no VerboVivo, o Duolingo da Palavra. Vem comigo! 📖✨\n#VerboVivo #Streak #FéDiária`;
+      return `🔥 ${streak} dias seguidos lendo a Bíblia!\nEstou no Meu Caminho de Luz, o Duolingo da Palavra. Vem comigo! 📖✨\n#MeuCaminhoDeLuz #Streak #FéDiária`;
     }
-    return 'Estou usando o VerboVivo! 📖✨';
+    return 'Estou usando o Meu Caminho de Luz! 📖✨';
   };
 
   const text = encodeURIComponent(buildShareText());
@@ -36,7 +36,7 @@ export default function SocialShare({ devotional, lesson, xp, streak }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: devotional?.title || lesson?.title || 'VerboVivo',
+          title: devotional?.title || lesson?.title || 'Meu Caminho de Luz',
           text: buildShareText(),
           url: 'https://verbovivo.app'
         });

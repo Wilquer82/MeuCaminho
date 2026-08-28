@@ -52,7 +52,7 @@ export default function PaywallModal({ isOpen, onClose, completedToday, dailyLim
 
         <p style={{ fontSize: 14, color: 'var(--muted)', margin: '0 0 20px', lineHeight: 1.5 }}>
           Você completou <strong style={{ color: 'var(--premium)' }}>{completedToday}/{dailyLimit}</strong> lições hoje.
-          Assine o <strong>VerboVivo Premium</strong> e continue sem limites!
+          Assine o <strong>Meu Caminho de Luz Premium</strong> e continue sem limites!
         </p>
 
         {/* Benefícios */}

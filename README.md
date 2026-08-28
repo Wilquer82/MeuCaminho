@@ -1,4 +1,4 @@
-# 📖 VerboVivo — A Palavra Viva
+# 📖 Meu Caminho de Luz — A Palavra Viva
 
 > O Duolingo da Bíblia — App gamificado de leitura bíblica com monetização, devocionais, dicas de hebraico/grego e comunidade.
 
@@ -244,7 +244,7 @@ Gere o AAB assinado e publique na Google Play Console (taxa única: **$25 USD**)
 
 | Elemento | Valor |
 |---|---|
-| Nome | VerboVivo |
+| Nome | Meu Caminho de Luz |
 | Slogan | A Palavra Viva |
 | Cor primária | `#297a2e` (Verde) |
 | Cor destaque | `#d97706` (Laranja/Streak) |

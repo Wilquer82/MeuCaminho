@@ -101,7 +101,7 @@ export default function Home() {
       </div>
 
       {/* Missão mensal */}
-      <Link to="/missions" style={{ textDecoration: 'none' }}>
+      <Link to="/bible?book=psalms&chapter=1" style={{ textDecoration: 'none' }}>
         <div className="card-tap" style={{
           background: 'linear-gradient(135deg,var(--premium),#5b21b6)',
           borderRadius: 16, padding: 14, marginBottom: 14, color: '#fff',
@@ -166,7 +166,7 @@ export default function Home() {
             cursor: 'pointer', textAlign: 'center'
           }}>
             <p style={{ fontSize: 11, opacity: .9, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-              💎 VerboVivo Premium
+              💎 Meu Caminho de Luz Premium
             </p>
             <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
               Lições ilimitadas · Teologia completa · Sem anúncios

@@ -66,7 +66,7 @@ export default function Premium() {
           boxShadow: '0 8px 24px rgba(139,92,246,.4)'
         }}>💎</div>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px' }}>
-          VerboVivo Premium
+          Meu Caminho de Luz Premium
         </h1>
         <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0, maxWidth: 320 }}>
           Leve sua jornada na Palavra para o próximo nível

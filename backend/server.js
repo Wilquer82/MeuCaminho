@@ -39,9 +39,9 @@ app.get('/health', (req, res) => {
 // Rota raiz
 app.get('/', (req, res) => {
   res.json({
-    name: 'VerboVivo API',
+    name: 'Meu Caminho de Luz API',
     version: '1.0.0',
-    description: 'API do app bíblico gamificado VerboVivo',
+    description: 'API do app bíblico gamificado Meu Caminho de Luz',
     endpoints: {
       auth: '/api/auth',
       lessons: '/api/lessons',
@@ -55,6 +55,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 API VerboVivo rodando na porta ${PORT}`);
+  console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });

@@ -159,7 +159,7 @@ const devotionalData = {
   meditationQuestion: 'Qual preocupação você precisa entregar hoje ao Senhor?',
   prayer: 'Senhor, eu te entrego minhas angústias e peço a paz que só vem de Ti. Guarda meu coração e me ajuda a confiar em Teu cuidado.',
   category: 'fé',
-  author: 'VerboVivo',
+  author: 'Meu Caminho de Luz',
   source: 'Filipenses 4:6-7'
 };
 

@@ -50,7 +50,7 @@ export default function About() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 14px', fontSize: 36, color: '#fff'
         }}>📖</div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 6px' }}>VerboVivo</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 6px' }}>Meu Caminho de Luz</h1>
         <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>Versão 1.0.0</p>
       </div>
 
@@ -60,7 +60,7 @@ export default function About() {
       }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 10px' }}>Sobre o app</h2>
         <p style={{ fontSize: 14, lineHeight: 1.7, color: '#334155', margin: 0 }}>
-          O <strong>VerboVivo</strong> é um aplicativo gamificado de leitura bíblica,
+          O <strong>Meu Caminho de Luz</strong> é um aplicativo gamificado de leitura bíblica,
           inspirado na metodologia do Duolingo. Nossa missão é tornar a leitura da
           Palavra de Deus um hábito diário prazeroso e consistente.
         </p>
@@ -124,7 +124,7 @@ export default function About() {
         {/* Estrelas */}
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 8 }}>
-            Como você avalia o VerboVivo?
+            Como você avalia o Meu Caminho de Luz?
           </label>
           <div style={{ display: 'flex', gap: 4 }}>
             {[1, 2, 3, 4, 5].map(star => (
@@ -224,7 +224,7 @@ export default function About() {
           Termos de Uso · Política de Privacidade
         </p>
         <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>
-          © 2026 VerboVivo · Feito com ❤️ para a glória de Deus
+          © 2026 Meu Caminho de Luz · Feito com ❤️ para a glória de Deus
         </p>
       </div>
 

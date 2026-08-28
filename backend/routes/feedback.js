@@ -35,7 +35,7 @@ router.post('/', auth, async (req, res) => {
       from: process.env.EMAIL_USER,
       to: process.env.DEV_EMAIL,
       replyTo: user.email,
-      subject: `📊 Feedback VerboVivo - ${category} - Nota: ${rating}/5`,
+      subject: `📊 Feedback Meu Caminho de Luz - ${category} - Nota: ${rating}/5`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2 style="color: #297a2e;">Novo Feedback Recebido!</h2>
@@ -74,7 +74,7 @@ router.post('/', auth, async (req, res) => {
           <p>Seu feedback foi recebido e é muito importante para nós.</p>
           <p>Lemos cada mensagem pessoalmente.</p>
           <p style="margin-top: 30px; color: #64748b; font-size: 12px;">
-            Equipe VerboVivo
+            Equipe Meu Caminho de Luz
           </p>
         </div>
       `

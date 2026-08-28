@@ -22,7 +22,7 @@ export default function Header() {
           <path d="M2 17l10 5 10-5"/>
           <path d="M2 12l10 5 10-5"/>
         </svg>
-        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>VerboVivo</span>
+        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>Meu Caminho de Luz</span>
       </Link>
 
       <Link to="/devotional" style={{

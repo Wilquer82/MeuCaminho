@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function Bible() {
+  const [searchParams] = useSearchParams();
   const { updateUser } = useAuth();
   const [books, setBooks] = useState([]);
-  const [bookId, setBookId] = useState('');
-  const [chapter, setChapter] = useState(1);
+  const requestedBook = searchParams.get('book');
+  const requestedChapter = Number(searchParams.get('chapter')) || 1;
+  const [bookId, setBookId] = useState(requestedBook || '');
+  const [chapter, setChapter] = useState(requestedChapter);
   const [reading, setReading] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingChapter, setLoadingChapter] = useState(false);
@@ -16,7 +20,13 @@ export default function Bible() {
     api.get('/bible/books')
       .then(({ data }) => {
         setBooks(data);
-        if (data.length) setBookId(data[0].id);
+        const matchingBook = data.find(book => book.id === requestedBook);
+        if (matchingBook) {
+          setBookId(matchingBook.id);
+          setChapter(Math.min(requestedChapter, matchingBook.chapters));
+        } else if (data.length) {
+          setBookId(data[0].id);
+        }
       })
       .catch(() => setMessage('Não foi possível carregar os livros.'))
       .finally(() => setLoading(false));

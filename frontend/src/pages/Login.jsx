@@ -43,7 +43,7 @@ export default function Login() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 16px', fontSize: 40, color: '#fff'
         }}>📖</div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 4px' }}>VerboVivo</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 4px' }}>Meu Caminho de Luz</h1>
         <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
           A Palavra Viva — O Duolingo da Bíblia
         </p>

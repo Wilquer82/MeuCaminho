@@ -17,7 +17,7 @@ const devotionalSchema = new mongoose.Schema({
     enum: ['fé', 'esperança', 'amor', 'sabedoria', 'adoração', 'gratidão'],
     default: 'fé'
   },
-  author: { type: String, default: 'VerboVivo' },
+  author: { type: String, default: 'Meu Caminho de Luz' },
   source: String,
   views: { type: Number, default: 0 },
   completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
