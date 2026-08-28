@@ -1,17 +1,18 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const missionTypes = {
   mensal: [
-    { title: 'Ler 8 capítulos dos Salmos', progress: 62, current: 5, total: 8, reward: 'Medalha + 100 XP', color: 'var(--accent)' },
+    { title: 'Ler 8 capítulos dos Salmos', progress: 62, current: 5, total: 8, reward: 'Medalha + 100 XP', color: 'var(--accent)', target: '/bible?book=psalms&chapter=6' },
     { title: '20 dias de ofensiva', progress: 60, current: 12, total: 20, reward: 'Congelador + 50 XP', color: 'var(--premium)' },
     { title: 'Parabenizar 5 amigos', progress: 40, current: 2, total: 5, reward: '30 XP', color: 'var(--accent2)' }
   ],
   semestral: [
-    { title: 'Completar os Evangelhos', progress: 45, current: 45, total: 100, reward: 'Medalha de Ouro + 500 XP', color: '#0d9488' },
+    { title: 'Completar os Evangelhos', progress: 45, current: 45, total: 100, reward: 'Medalha de Ouro + 500 XP', color: '#0d9488', target: '/bible?book=matthew&chapter=1' },
     { title: 'Unidade Teologia: Soteriologia', progress: 0, current: 0, total: 100, reward: 'Desbloqueia em setembro', color: 'var(--muted)', locked: true }
   ],
   anual: [
-    { title: 'Bíblia Completa em 1 Ano', progress: 18, current: 18, total: 100, reward: 'Título "Leitor da Bíblia" + 2000 XP', color: '#fbbf24', featured: true },
+    { title: 'Bíblia Completa em 1 Ano', progress: 18, current: 18, total: 100, reward: 'Título "Leitor da Bíblia" + 2000 XP', color: '#fbbf24', featured: true, target: '/bible?book=genesis&chapter=1' },
     { title: 'Curso Teologia Básica completo', progress: 10, current: 10, total: 100, reward: 'Título "Teólogo Aprendiz" + 1000 XP', color: 'var(--premium)' }
   ]
 };
@@ -56,8 +57,15 @@ export default function Missions() {
 
       {/* Missões */}
       {missionTypes[activeTab].map((mission, i) => (
-        <div
+        <Link
           key={i}
+          to={mission.target || '#'}
+          onClick={event => {
+            if (!mission.target || mission.locked) event.preventDefault();
+          }}
+          style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
+        >
+        <div
           className="card-tap"
           style={{
             background: mission.featured
@@ -116,6 +124,7 @@ export default function Missions() {
             color: mission.featured ? 'rgba(255,255,255,.9)' : 'var(--accent2)'
           }}>🏆 Recompensa: {mission.reward}</p>
         </div>
+        </Link>
       ))}
 
     </div>

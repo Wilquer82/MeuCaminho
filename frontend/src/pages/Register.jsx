@@ -25,7 +25,9 @@ export default function Register() {
       await register(name, email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao cadastrar');
+      setError(err.response?.data?.message || (
+        err.request ? 'Não foi possível conectar ao servidor. Tente novamente.' : 'Erro ao cadastrar'
+      ));
     } finally {
       setLoading(false);
     }

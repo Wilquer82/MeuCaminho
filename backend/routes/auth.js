@@ -11,7 +11,17 @@ const gerarToken = (id) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const name = req.body.name?.trim();
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
