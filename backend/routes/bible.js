@@ -27,7 +27,7 @@ const books = [
   { id: 'nehemiah', name: 'Neemias', chapters: 13 },
   { id: 'esther', name: 'Ester', chapters: 10 },
   { id: 'job', name: 'Jó', chapters: 42 },
-  { id: 'psalms', name: 'Salmos', chapters: 150 },
+  { id: 'psalms', apiId: 'salmos', name: 'Salmos', chapters: 150 },
   { id: 'proverbs', name: 'Provérbios', chapters: 31 },
   { id: 'ecclesiastes', name: 'Eclesiastes', chapters: 12 },
   { id: 'songofsolomon', name: 'Cânticos', chapters: 8 },
@@ -105,7 +105,8 @@ router.get('/:book/:chapter', auth, async (req, res) => {
     const translation = translations.some(item => item.id === req.query.translation)
       ? req.query.translation
       : 'almeida';
-    const response = await fetch(`https://bible-api.com/${book.id}%20${chapter}?translation=${translation}`);
+    const apiBookId = book.apiId || book.id;
+    const response = await fetch(`https://bible-api.com/${apiBookId}%20${chapter}?translation=${translation}`);
     if (!response.ok) throw new Error('Fonte bíblica indisponível');
     const data = await response.json();
     const reading = await BibleReading.exists({ user: req.user._id, book: book.id, chapter });
