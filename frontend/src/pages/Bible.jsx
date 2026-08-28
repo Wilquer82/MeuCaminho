@@ -18,15 +18,34 @@ export default function Bible() {
   const [loadingChapter, setLoadingChapter] = useState(false);
   const [message, setMessage] = useState('');
 
+  async function loadPublicBooks() {
+    const response = await fetch('https://api.midvash.com/v1/books');
+    const { data } = await response.json();
+    return data.map(book => ({
+      id: book.slug.en,
+      name: book.name['pt-br'],
+      chapters: book.chapters,
+      completedChapters: 0
+    }));
+  }
+
+  async function loadPublicTranslations() {
+    const response = await fetch('https://api.midvash.com/v1/versions?language=pt-br');
+    const { data } = await response.json();
+    return data.map(version => ({ id: version.slug, name: version.name, language: version.language }));
+  }
+
   useEffect(() => {
     localStorage.setItem('bibleTranslation', translation);
   }, [translation]);
 
   useEffect(() => {
-    Promise.all([api.get('/bible/books'), api.get('/bible/translations')])
-      .then(([booksResponse, translationsResponse]) => {
-        const data = booksResponse.data;
-        setTranslations(translationsResponse.data);
+    Promise.all([
+      api.get('/bible/books').then(response => response.data).catch(loadPublicBooks),
+      api.get('/bible/translations').then(response => response.data).catch(loadPublicTranslations)
+    ])
+      .then(([data, versionData]) => {
+        setTranslations(versionData);
         setBooks(data);
         const matchingBook = data.find(book => book.id === requestedBook);
         if (matchingBook) {
@@ -36,7 +55,7 @@ export default function Bible() {
           setBookId(data[0].id);
         }
       })
-      .catch(() => setMessage('Não foi possível carregar os livros.'))
+      .catch(() => setMessage('Não foi possível carregar os livros agora.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -51,7 +70,25 @@ export default function Bible() {
     try {
       setLoadingChapter(true);
       setMessage('');
-      const { data } = await api.get(`/bible/${selectedBookId}/${selectedChapter}`, { params: { translation } });
+      let data;
+      try {
+        ({ data } = await api.get(`/bible/${selectedBookId}/${selectedChapter}`, { params: { translation } }));
+      } catch (error) {
+        const response = await fetch(`https://api.midvash.com/v1/${translation}/${selectedBookId}/${selectedChapter}`);
+        const payload = await response.json();
+        if (!response.ok) throw error;
+        data = {
+          book: selectedBook?.name,
+          bookId: selectedBookId,
+          chapter: selectedChapter,
+          reference: `${selectedBook?.name} ${selectedChapter}`,
+          verses: payload.data.verses.map((text, index) => ({ verse: payload.data.verse + index, text })),
+          translation,
+          translationName: translation.toUpperCase(),
+          completed: false,
+          xpReward: 10
+        };
+      }
       setReading(data);
     } catch {
       setReading(null);

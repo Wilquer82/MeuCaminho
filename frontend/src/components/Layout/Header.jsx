@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, theme, setTheme } = useAuth();
 
   return (
     <header style={{
@@ -25,6 +25,13 @@ export default function Header() {
         <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>Meu Caminho de Luz</span>
       </Link>
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <button
+        type="button"
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+        style={{ border: '1px solid var(--border)', borderRadius: 10, background: 'var(--card)', padding: '6px 8px', fontSize: 16 }}
+      >{theme === 'dark' ? '☀️' : '🌙'}</button>
       <Link to="/devotional" style={{
         display: 'flex',
         alignItems: 'center',
@@ -38,6 +45,7 @@ export default function Header() {
       }}>
         📖 Devocional
       </Link>
+      </div>
     </header>
   );
 }
