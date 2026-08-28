@@ -7,6 +7,8 @@ export default function Bible() {
   const [searchParams] = useSearchParams();
   const { updateUser } = useAuth();
   const [books, setBooks] = useState([]);
+  const [translations, setTranslations] = useState([]);
+  const [translation, setTranslation] = useState('almeida');
   const requestedBook = searchParams.get('book');
   const requestedChapter = Number(searchParams.get('chapter')) || 1;
   const [bookId, setBookId] = useState(requestedBook || '');
@@ -17,8 +19,10 @@ export default function Bible() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    api.get('/bible/books')
-      .then(({ data }) => {
+    Promise.all([api.get('/bible/books'), api.get('/bible/translations')])
+      .then(([booksResponse, translationsResponse]) => {
+        const data = booksResponse.data;
+        setTranslations(translationsResponse.data);
         setBooks(data);
         const matchingBook = data.find(book => book.id === requestedBook);
         if (matchingBook) {
@@ -35,7 +39,7 @@ export default function Bible() {
   useEffect(() => {
     if (!bookId) return;
     loadChapter(bookId, chapter);
-  }, [bookId, chapter]);
+  }, [bookId, chapter, translation]);
 
   const selectedBook = books.find(book => book.id === bookId);
 
@@ -43,7 +47,7 @@ export default function Bible() {
     try {
       setLoadingChapter(true);
       setMessage('');
-      const { data } = await api.get(`/bible/${selectedBookId}/${selectedChapter}`);
+      const { data } = await api.get(`/bible/${selectedBookId}/${selectedChapter}`, { params: { translation } });
       setReading(data);
     } catch {
       setReading(null);
@@ -84,6 +88,9 @@ export default function Bible() {
         <select value={bookId} onChange={event => { setBookId(event.target.value); setChapter(1); }} style={fieldStyle}>
           {books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}
         </select>
+        <select value={translation} onChange={event => setTranslation(event.target.value)} style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
+          {translations.map(version => <option key={version.id} value={version.id}>{version.name} ({version.language})</option>)}
+        </select>
         <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={fieldStyle}>
           {Array.from({ length: selectedBook?.chapters || 1 }, (_, index) => (
             <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
@@ -97,7 +104,10 @@ export default function Bible() {
         <>
           <section style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h2 style={{ fontSize: 20, margin: 0 }}>{reading.reference}</h2>
+              <div>
+                <h2 style={{ fontSize: 20, margin: 0 }}>{reading.reference}</h2>
+                <span style={{ color: 'var(--muted)', fontSize: 11 }}>{reading.translationName}</span>
+              </div>
               <span style={{ color: reading.completed ? 'var(--success)' : 'var(--accent2)', fontSize: 12, fontWeight: 700 }}>
                 {reading.completed ? 'CONCLUÍDO' : `+${reading.xpReward} XP`}
               </span>

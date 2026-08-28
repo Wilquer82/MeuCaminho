@@ -4,6 +4,10 @@ const { auth } = require('../middleware/auth');
 const BibleReading = require('../models/BibleReading');
 const User = require('../models/User');
 
+const translations = [
+  { id: 'almeida', name: 'Almeida', language: 'pt-BR' }
+];
+
 const books = [
   { id: 'genesis', name: 'Gênesis', chapters: 50 },
   { id: 'exodus', name: 'Êxodo', chapters: 40 },
@@ -85,6 +89,10 @@ router.get('/books', auth, async (req, res) => {
   }
 });
 
+router.get('/translations', auth, (req, res) => {
+  res.json(translations);
+});
+
 router.get('/:book/:chapter', auth, async (req, res) => {
   const book = books.find(item => item.id === req.params.book);
   const chapter = Number(req.params.chapter);
@@ -94,7 +102,10 @@ router.get('/:book/:chapter', auth, async (req, res) => {
   }
 
   try {
-    const response = await fetch(`https://bible-api.com/${book.id}%20${chapter}?translation=almeida`);
+    const translation = translations.some(item => item.id === req.query.translation)
+      ? req.query.translation
+      : 'almeida';
+    const response = await fetch(`https://bible-api.com/${book.id}%20${chapter}?translation=${translation}`);
     if (!response.ok) throw new Error('Fonte bíblica indisponível');
     const data = await response.json();
     const reading = await BibleReading.exists({ user: req.user._id, book: book.id, chapter });
@@ -105,6 +116,8 @@ router.get('/:book/:chapter', auth, async (req, res) => {
       chapter,
       reference: data.reference,
       verses: data.verses,
+      translation,
+      translationName: translations.find(item => item.id === translation).name,
       completed: Boolean(reading),
       xpReward: 10
     });
