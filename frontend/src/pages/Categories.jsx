@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import api from '../services/api';
 
 const categories = [
   { id: 'pentateuco', name: 'Pentateuco', icon: '📜', color: 'var(--accent2)', progress: 65, books: 'Gênesis a Deuteronômio · 5 livros' },
@@ -12,6 +13,13 @@ const categories = [
 
 export default function Categories() {
   const [active, setActive] = useState('poeticos');
+  const [progress, setProgress] = useState({});
+
+  useEffect(() => {
+    api.get('/progress/summary')
+      .then(({ data }) => setProgress(data.categories || {}))
+      .catch(() => setProgress({}));
+  }, []);
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
@@ -62,21 +70,22 @@ export default function Categories() {
         <div style={{
           display: 'flex', alignItems: 'flex-end', gap: 6, height: 80, padding: '0 4px'
         }}>
-          {categories.slice(0, 7).map(cat => (
-            <div key={cat.id} style={{
+          {categories.slice(0, 7).map(cat => {
+            const categoryProgress = progress[cat.id]?.percentage ?? 0;
+            return <div key={cat.id} style={{
               flex: 1, display: 'flex', flexDirection: 'column',
               alignItems: 'center', gap: 4
             }}>
               <div style={{
                 width: '100%', background: cat.locked ? 'var(--border)' : cat.color,
-                borderRadius: '4px 4px 0 0', height: `${cat.progress}%`,
-                minHeight: cat.progress > 0 ? 4 : 2, opacity: cat.locked ? .4 : 1
+                borderRadius: '4px 4px 0 0', height: `${categoryProgress}%`,
+                minHeight: categoryProgress > 0 ? 4 : 2, opacity: cat.locked ? .4 : 1
               }} />
               <span style={{ fontSize: 9, color: 'var(--muted)' }}>
                 {cat.name.slice(0, 4)}
               </span>
-            </div>
-          ))}
+            </div>;
+          })}
         </div>
       </div>
 
@@ -90,6 +99,7 @@ export default function Categories() {
         <CategoryCard
           key={cat.id}
           category={cat}
+          progress={progress[cat.id]?.percentage ?? 0}
           active={active === cat.id}
           onClick={() => setActive(cat.id)}
         />
@@ -104,6 +114,7 @@ export default function Categories() {
         <CategoryCard
           key={cat.id}
           category={cat}
+          progress={progress[cat.id]?.percentage ?? 0}
           active={active === cat.id}
           onClick={() => !cat.locked && setActive(cat.id)}
         />
@@ -147,7 +158,7 @@ export default function Categories() {
   );
 }
 
-function CategoryCard({ category, active, onClick }) {
+function CategoryCard({ category, progress, active, onClick }) {
   return (
     <div
       onClick={onClick}
@@ -178,7 +189,7 @@ function CategoryCard({ category, active, onClick }) {
               fontSize: 9, fontWeight: 600,
               background: `${category.color}1a`, color: category.color,
               padding: '2px 7px', borderRadius: 8
-            }}>{category.progress}%</span>
+            }}>{progress}%</span>
           )}
         </div>
         <p style={{
@@ -187,7 +198,7 @@ function CategoryCard({ category, active, onClick }) {
         {!category.locked && (
           <div style={{ height: 4, background: 'rgba(0,0,0,.06)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{
-              height: '100%', width: `${category.progress}%`,
+              height: '100%', width: `${progress}%`,
               background: category.color, borderRadius: 2
             }} />
           </div>

@@ -1,10 +1,19 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import api from '../services/api';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, theme, setTheme } = useAuth();
   const { subscriptionStatus, cancelSubscription } = useSubscription();
+  const [readingStats, setReadingStats] = useState({ totalChaptersRead: 0, readingXp: 0 });
+
+  useEffect(() => {
+    api.get('/progress/summary')
+      .then(({ data }) => setReadingStats(data))
+      .catch(() => {});
+  }, []);
 
   if (!user) return null;
 
@@ -45,6 +54,7 @@ export default function Profile() {
           marginTop: 16
         }}>
           <Stat label="XP" value={(user.xp || 0).toLocaleString('pt-BR')} />
+          <Stat label="Capítulos" value={readingStats.totalChaptersRead} />
           <Stat label="Streak" value={`${user.streak || 0} dias`} color="var(--accent2)" />
           <Stat label="Congeladores" value={user.streakFreezes || 2} />
         </div>
@@ -135,6 +145,14 @@ export default function Profile() {
       }}>
         <MenuItem icon="👤" label="Editar perfil" />
         <MenuItem icon="🔔" label="Notificações" />
+        <div
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+        >
+          <span style={{ fontSize: 18 }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+          <span style={{ fontSize: 14, fontWeight: 500, flex: 1 }}>Tema escuro</span>
+          <span style={{ color: 'var(--muted)', fontSize: 12 }}>{theme === 'dark' ? 'Ativo' : 'Desativado'}</span>
+        </div>
         <Link to="/about" style={{ textDecoration: 'none', color: 'inherit' }}>
           <MenuItem icon="ℹ️" label="Sobre e contato" />
         </Link>

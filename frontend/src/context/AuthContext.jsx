@@ -6,6 +6,12 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Verificar se usuário já está logado ao carregar
   useEffect(() => {
@@ -50,6 +56,8 @@ export function AuthProvider({ children }) {
       register,
       logout,
       updateUser,
+      theme,
+      setTheme,
       loading,
       isAuthenticated: !!user
     }}>

@@ -110,7 +110,7 @@ export default function About() {
           display: 'inline-block', padding: '10px 20px', borderRadius: 10,
           background: '#fff', color: 'var(--premium)', textDecoration: 'none',
           fontSize: 13, fontWeight: 700
-        }}>📧 verbovivo.app@gmail.com</a>
+        }}>📧 fox.tail.cons@gmail.com</a>
       </div>
 
       {/* Pesquisa de Satisfação */}

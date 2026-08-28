@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 export default function StreakCalendar() {
   const { user } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [completedDays, setCompletedDays] = useState([]);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -12,15 +14,14 @@ export default function StreakCalendar() {
   const today = new Date().getDate();
   const isCurrentMonth = month === new Date().getMonth() && year === new Date().getFullYear();
 
-  // Simulação de dias completados (streak)
-  const completedDays = user?.streak
-    ? Array.from({ length: Math.min(user.streak, today) }, (_, i) => today - i)
-    : [];
+  useEffect(() => {
+    api.get('/progress/activity', { params: { year, month } })
+      .then(({ data }) => setCompletedDays(data))
+      .catch(() => setCompletedDays([]));
+  }, [year, month]);
 
   const frozenDays = [14]; // Exemplo
-  const missedDays = user?.streak && today > user.streak + 1
-    ? [today - user.streak - 1]
-    : [];
+  const missedDays = [];
 
   const weekdays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
   const monthNames = [

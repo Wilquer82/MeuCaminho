@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
+import api from '../services/api';
 
 const leaderboard = [
   { rank: 1, name: 'Mateus', xp: 2340, avatar: 'M', color: '#d4af37' },
@@ -18,16 +20,34 @@ const activities = [
 
 export default function Community() {
   const { user, updateUser } = useAuth();
+  const [ranking, setRanking] = useState(leaderboard);
   const [celebrated, setCelebrated] = useState({});
   const [toast, setToast] = useState(null);
 
-  const celebrate = async (friendName, activityIdx) => {
+  useEffect(() => {
+    api.get('/community/leaderboard')
+      .then(({ data }) => setRanking(data.map((person, index) => ({
+        ...person,
+        rank: index + 1,
+        avatar: person.name.charAt(0).toUpperCase(),
+        color: index < 3 ? ['#d4af37', '#c0c0c0', '#cd7f32'][index] : 'var(--accent2)',
+        isMe: person._id === user?._id
+      }))))
+      .catch(() => {});
+  }, [user?._id]);
+
+  const celebrate = async (friendId, friendName, activityIdx) => {
     if (celebrated[activityIdx]) return;
 
-    setCelebrated(prev => ({ ...prev, [activityIdx]: true }));
-    updateUser({ xp: (user?.xp || 0) + 5 });
-    setToast(`+5 XP! Você parabenizou ${friendName}`);
-    setTimeout(() => setToast(null), 2500);
+    try {
+      const { data } = await api.post(`/community/friends/${friendId}/celebrate`);
+      setCelebrated(prev => ({ ...prev, [activityIdx]: true }));
+      updateUser({ xp: data.newXp });
+      setToast(`+${data.xpEarned} XP! Você parabenizou ${friendName}`);
+      setTimeout(() => setToast(null), 2500);
+    } catch {
+      setToast('Não foi possível registrar o parabéns.');
+    }
   };
 
   return (
@@ -89,7 +109,7 @@ export default function Community() {
 
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => celebrate('Sarah', 'duo')}
+            onClick={() => ranking[1]?._id && celebrate(ranking[1]._id, ranking[1].name, 'duo')}
             disabled={celebrated['duo']}
             style={{
               flex: 1, padding: '10px 8px', borderRadius: 10,
@@ -99,11 +119,11 @@ export default function Community() {
               fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
             }}
           >{celebrated['duo'] ? '✓ Parabenizado' : '🎉 Parabenizar'}</button>
-          <button style={{
+          <Link to="/bible?book=john&chapter=3" style={{
             flex: 1, padding: '10px 8px', borderRadius: 10, border: 'none',
             background: 'var(--accent2)', color: '#fff',
-            fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
-          }}>Continuar</button>
+            fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center'
+          }}>Continuar</Link>
         </div>
       </div>
 
@@ -116,36 +136,36 @@ export default function Community() {
         background: 'var(--card)', border: '1px solid var(--border)',
         borderRadius: 14, overflow: 'hidden', marginBottom: 16
       }}>
-        {leaderboard.map((user, i) => (
+        {ranking.map((person, i) => (
           <div
             key={i}
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 12px',
               borderBottom: i < leaderboard.length - 1 ? '1px solid var(--border)' : 'none',
-              background: user?.isMe ? 'var(--accent-soft)' : 'transparent'
+              background: person?.isMe ? 'var(--accent-soft)' : 'transparent'
             }}
           >
             <span style={{
               fontSize: 14, fontWeight: 700, width: 20,
               color: user.color
-            }}>{user.rank}</span>
+            }}>{person.rank}</span>
             <div style={{
               width: 32, height: 32, borderRadius: '50%',
-              background: `linear-gradient(135deg, ${user.color}, ${user.color}aa)`,
+              background: `linear-gradient(135deg, ${person.color}, ${person.color}aa)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff', fontWeight: 700, fontSize: 13
-            }}>{user.avatar}</div>
+            }}>{person.avatar}</div>
             <div style={{ flex: 1 }}>
               <p style={{
-                fontSize: 13, fontWeight: user.isMe ? 700 : 600, margin: 0,
-                color: user.isMe ? 'var(--accent)' : 'var(--text)'
-              }}>{user.name}</p>
+                fontSize: 13, fontWeight: person.isMe ? 700 : 600, margin: 0,
+                color: person.isMe ? 'var(--accent)' : 'var(--text)'
+              }}>{person.name}</p>
             </div>
             <span style={{
               fontSize: 12, fontWeight: 700,
-              color: user.isMe ? 'var(--accent)' : 'var(--text)'
-            }}>{user.xp.toLocaleString('pt-BR')} XP</span>
+              color: person.isMe ? 'var(--accent)' : 'var(--text)'
+            }}>{person.xp.toLocaleString('pt-BR')} XP</span>
           </div>
         ))}
       </div>
@@ -182,7 +202,7 @@ export default function Community() {
             </div>
           </div>
           <button
-            onClick={() => celebrate(activity.name, i)}
+            onClick={() => ranking[i]?._id && celebrate(ranking[i]._id, activity.name, i)}
             disabled={celebrated[i]}
             style={{
               padding: '5px 12px', borderRadius: 10, border: 'none',

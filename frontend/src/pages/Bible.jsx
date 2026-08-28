@@ -8,7 +8,7 @@ export default function Bible() {
   const { updateUser } = useAuth();
   const [books, setBooks] = useState([]);
   const [translations, setTranslations] = useState([]);
-  const [translation, setTranslation] = useState('almeida');
+  const [translation, setTranslation] = useState(() => localStorage.getItem('bibleTranslation') || 'nvi');
   const requestedBook = searchParams.get('book');
   const requestedChapter = Number(searchParams.get('chapter')) || 1;
   const [bookId, setBookId] = useState(requestedBook || '');
@@ -17,6 +17,10 @@ export default function Bible() {
   const [loading, setLoading] = useState(true);
   const [loadingChapter, setLoadingChapter] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('bibleTranslation', translation);
+  }, [translation]);
 
   useEffect(() => {
     Promise.all([api.get('/bible/books'), api.get('/bible/translations')])
