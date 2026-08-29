@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const https = require('https');
+const path = require('path');
 require('dotenv').config();
 const conectarDB = require('./config/db');
 
@@ -43,6 +44,10 @@ function keepRenderAwake() {
 // Middleware globais
 app.use(cors());
 
+// Servir arquivos estáticos do frontend (produção)
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDistPath));
+
 // Rota do webhook Stripe PRECISA vir antes do express.json()
 app.use('/api/subscription/webhook', express.raw({ type: 'application/json' }), require('./routes/subscription'));
 
@@ -68,19 +73,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
 
-// Rota raiz
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Meu Caminho de Luz API',
-    version: '1.0.0',
-    description: 'API do app bíblico gamificado Meu Caminho de Luz',
-    endpoints: {
-      auth: '/api/auth',
-      lessons: '/api/lessons',
-      plans: '/api/plans',
-      devotional: '/api/devotional/today',
-      subscription: '/api/subscription',
-      health: '/health'
+// SPA fallback: servir index.html para todas as rotas não-API
+app.get('*', (req, res) => {
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      res.status(500).json({
+        error: 'Não foi possível carregar o app',
+        message: 'Frontend não encontrado. Certifique-se de executar: npm run build --prefix frontend'
+      });
     }
   });
 });
