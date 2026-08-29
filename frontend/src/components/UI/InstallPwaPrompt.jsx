@@ -9,7 +9,20 @@ export default function InstallPwaPrompt() {
     const checkStandalone = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       setIsStandalone(standalone);
-      setVisible(!standalone);
+      
+      if (!standalone) {
+        const dismissed = localStorage.getItem('pwaPromptDismissed');
+        if (dismissed) {
+          const dismissedTime = parseInt(dismissed, 10);
+          const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+          if (Date.now() - dismissedTime < sevenDaysMs) {
+            setVisible(false);
+            return;
+          }
+          localStorage.removeItem('pwaPromptDismissed');
+        }
+        setVisible(true);
+      }
     };
 
     checkStandalone();
@@ -17,7 +30,8 @@ export default function InstallPwaPrompt() {
     const handler = event => {
       event.preventDefault();
       setDeferredPrompt(event);
-      setVisible(true);
+      const dismissed = localStorage.getItem('pwaPromptDismissed');
+      if (!dismissed) setVisible(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -47,7 +61,10 @@ export default function InstallPwaPrompt() {
 
     alert(msg);
   };
-
+  const dismiss = () => {
+    localStorage.setItem('pwaPromptDismissed', Date.now().toString());
+    setVisible(false);
+  };
   return (
     <div style={{
       position: 'fixed',
@@ -77,10 +94,33 @@ export default function InstallPwaPrompt() {
           border: 'none',
           borderRadius: 8,
           padding: '8px 12px',
-          fontWeight: 700
+          fontWeight: 700,
+          fontSize: 12,
+          cursor: 'pointer'
         }}
       >
         Instalar
+      </button>
+      <button
+        type="button"
+        onClick={dismiss}
+        style={{
+          background: 'rgba(255,255,255,0.2)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 6,
+          padding: '6px 10px',
+          fontWeight: 600,
+          fontSize: 16,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: 32,
+          minHeight: 32
+        }}
+      >
+        ✕
       </button>
     </div>
   );

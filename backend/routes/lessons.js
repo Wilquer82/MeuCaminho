@@ -34,7 +34,10 @@ router.get('/today', auth, checkDailyLimit, async (req, res) => {
       return res.status(404).json({ message: 'Nenhuma lição disponível' });
     }
 
-    const todayKey = new Date().toISOString().slice(0, 10);
+    // Usar data local do servidor (não UTC)
+    const now = new Date();
+    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    const todayKey = localDate.toISOString().slice(0, 10);
     const seed = [...todayKey].reduce((sum, char) => sum + char.charCodeAt(0), 0);
     const lesson = lessons[Math.abs(seed) % lessons.length];
 

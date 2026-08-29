@@ -22,6 +22,9 @@ const bookChapterMap = {
   '2-kings': 25,
   '1-chronicles': 29,
   '2-chronicles': 36,
+  ezra: 10,
+  nehemiah: 13,
+  esther: 10,
   job: 42,
   proverbs: 31,
   ecclesiastes: 12,
@@ -85,7 +88,10 @@ const categoryBooks = {
     { slug: '1-kings', label: '1 Reis' },
     { slug: '2-kings', label: '2 Reis' },
     { slug: '1-chronicles', label: '1 Crônicas' },
-    { slug: '2-chronicles', label: '2 Crônicas' }
+    { slug: '2-chronicles', label: '2 Crônicas' },
+    { slug: 'ezra', label: 'Esdras' },
+    { slug: 'nehemiah', label: 'Neemias' },
+    { slug: 'esther', label: 'Ester' }
   ],
   poeticos: [
     { slug: 'job', label: 'Jó' },
@@ -173,7 +179,10 @@ export default function Categories() {
     setActive(prev => prev === category.id ? category.id : category.id);
   };
 
-  const toBookChapterUrl = (bookSlug, chapter) => `/bible?book=${bookSlug}&chapter=${chapter}`;
+  const toBookChapterUrl = (bookSlug, chapter) => {
+    const normalizedSlug = bookSlug.replace(/-/g, '');
+    return `/bible?book=${normalizedSlug}&chapter=${chapter}`;
+  };
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">

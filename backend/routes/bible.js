@@ -91,9 +91,25 @@ router.get('/books', auth, async (req, res) => {
 
 router.get('/translations', auth, async (req, res) => {
   try {
-    const response = await fetch('https://api.midvash.com/v1/versions?language=pt-br');
+    // Tentar com código ISO pt-BR (maiúsculo) primeiro
+    const response = await fetch('https://api.midvash.com/v1/versions?language=pt-BR');
     if (!response.ok) throw new Error('Versões indisponíveis');
     const { data } = await response.json();
+    
+    // Se retornar vazio, tentar sem filtro de language
+    if (!data || data.length === 0) {
+      const fallbackResponse = await fetch('https://api.midvash.com/v1/versions');
+      if (fallbackResponse.ok) {
+        const { data: allVersions } = await fallbackResponse.json();
+        const filtered = allVersions.filter(v => v.language && v.language.toLowerCase().includes('pt'));
+        return res.json(filtered.map(version => ({
+          id: version.slug,
+          name: version.name,
+          language: version.language
+        })));
+      }
+    }
+    
     res.json(data.map(version => ({
       id: version.slug,
       name: version.name,
