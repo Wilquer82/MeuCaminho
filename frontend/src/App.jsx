@@ -16,6 +16,8 @@ import Theology from './pages/Theology';
 import Missions from './pages/Missions';
 import Community from './pages/Community';
 import Videos from './pages/Videos';
+import AdditionalContent from './pages/AdditionalContent';
+import AdditionalContentDetail from './pages/AdditionalContentDetail';
 import Devotional from './pages/Devotional';
 import About from './pages/About';
 import Profile from './pages/Profile';
@@ -72,6 +74,8 @@ export default function App() {
         <Route path="/missions" element={<PrivateRoute><Missions /></PrivateRoute>} />
         <Route path="/community" element={<PrivateRoute><Community /></PrivateRoute>} />
         <Route path="/videos" element={<PrivateRoute><Videos /></PrivateRoute>} />
+        <Route path="/extras" element={<PrivateRoute><AdditionalContent /></PrivateRoute>} />
+        <Route path="/extras/:module" element={<PrivateRoute><AdditionalContentDetail /></PrivateRoute>} />
         <Route path="/devotional" element={<PrivateRoute><Devotional /></PrivateRoute>} />
         <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />

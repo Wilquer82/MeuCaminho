@@ -5,6 +5,7 @@ import api from '../services/api';
 
 const CACHE_KEY = 'meucaminho_bible_cache';
 const VERSION_CACHE_KEY = 'meucaminho_bible_version_cache';
+const FAVORITES_KEY = 'meucaminho_bible_favorites';
 
 function getCachedChapterCache() {
   try {
@@ -28,6 +29,18 @@ function setCachedChapterCache(cache) {
 
 function setVersionCache(cache) {
   localStorage.setItem(VERSION_CACHE_KEY, JSON.stringify(cache));
+}
+
+function getFavorites() {
+  try {
+    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveFavorites(favorites) {
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
 }
 
 function normalizeChapterData(bookName, selectedBookId, selectedChapter, translation, payload) {
@@ -67,6 +80,7 @@ export default function Bible() {
   const [offlineSaved, setOfflineSaved] = useState(false);
   const [versionOfflineSaved, setVersionOfflineSaved] = useState(false);
   const [savingVersion, setSavingVersion] = useState(false);
+  const [favorites, setFavorites] = useState(() => getFavorites());
 
   async function loadPublicBooks() {
     const response = await fetch('https://api.midvash.com/v1/books');
@@ -179,6 +193,34 @@ export default function Bible() {
     } catch {
       setMessage('Não foi possível registrar a leitura.');
     }
+  }
+
+  function toggleFavorite(verse) {
+    if (!selectedBook || !reading) return;
+
+    const favoriteKey = `${translation}:${bookId}:${chapter}:${verse.verse}`;
+    const nextFavorites = [...favorites];
+    const favoriteIndex = nextFavorites.findIndex(item => item.key === favoriteKey);
+
+    if (favoriteIndex >= 0) {
+      nextFavorites.splice(favoriteIndex, 1);
+      setMessage('Versículo removido dos favoritos.');
+    } else {
+      nextFavorites.unshift({
+        key: favoriteKey,
+        translation,
+        bookId,
+        bookName: selectedBook.name,
+        chapter,
+        verse: verse.verse,
+        text: verse.text,
+        createdAt: new Date().toISOString()
+      });
+      setMessage('Versículo marcado como favorito.');
+    }
+
+    setFavorites(nextFavorites);
+    saveFavorites(nextFavorites);
   }
 
   function saveCurrentChapterOffline() {
@@ -294,6 +336,40 @@ export default function Bible() {
         </button>
       </div>
 
+      {favorites.length > 0 && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 12, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, margin: 0 }}>Favoritos</p>
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>{favorites.length}</span>
+          </div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {favorites.slice(0, 3).map(item => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => {
+                  setBookId(item.bookId);
+                  setChapter(item.chapter);
+                  setTranslation(item.translation);
+                }}
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  background: 'var(--bg)',
+                  textAlign: 'left',
+                  padding: '8px 10px',
+                  color: 'var(--text)',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 2 }}>{item.bookName} {item.chapter}:{item.verse}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{item.text.slice(0, 80)}{item.text.length > 80 ? '...' : ''}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loadingChapter ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>Carregando capítulo...</div>
       ) : reading && (
@@ -309,12 +385,41 @@ export default function Bible() {
               </span>
             </div>
             <div style={{ display: 'grid', gap: 14 }}>
-              {reading.verses.map(verse => (
-                <p key={verse.verse} style={{ fontFamily: 'Georgia, serif', fontSize: 16, lineHeight: 1.65, margin: 0 }}>
-                  <sup style={{ color: 'var(--accent)', fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: 700, marginRight: 6 }}>{verse.verse}</sup>
-                  {verse.text}
-                </p>
-              ))}
+              {reading.verses.map(verse => {
+                const isFavorite = favorites.some(item => item.key === `${translation}:${bookId}:${chapter}:${verse.verse}`);
+
+                return (
+                  <div key={verse.verse} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <div style={{ minWidth: 22, paddingTop: 2 }}>
+                      <sup style={{ color: 'var(--accent)', fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: 700 }}>{verse.verse}</sup>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontFamily: 'Georgia, serif', fontSize: 16, lineHeight: 1.65, margin: 0, background: isFavorite ? 'rgba(245, 158, 11, .12)' : 'transparent', borderRadius: 8, padding: isFavorite ? '4px 8px' : '0' }}>
+                        {verse.text}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleFavorite(verse)}
+                      aria-label={isFavorite ? 'Remover favorito' : 'Adicionar favorito'}
+                      style={{
+                        border: '1px solid var(--border)',
+                        background: isFavorite ? '#fbbf24' : 'var(--card)',
+                        borderRadius: 8,
+                        width: 32,
+                        height: 32,
+                        fontSize: 16,
+                        cursor: 'pointer',
+                        color: isFavorite ? '#1f2937' : 'var(--accent2)',
+                        flexShrink: 0,
+                        marginTop: 2
+                      }}
+                    >
+                      {isFavorite ? '★' : '☆'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </section>
           <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>

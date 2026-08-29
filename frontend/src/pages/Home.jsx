@@ -90,14 +90,14 @@ export default function Home() {
 
       {/* Ações rápidas */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)',
         gap: 8, marginBottom: 14
       }}>
         <QuickAction to="/streak" icon="📅" label="Ofensiva" color="var(--accent2-soft)" />
         <QuickAction to="/categories" icon="📚" label="Categorias" color="var(--accent-soft)" />
         <QuickAction to="/bible" icon="📖" label="Bíblia" color="var(--accent2-soft)" />
         <QuickAction to="/review" icon="🔄" label="Revisar" color="var(--premium-soft)" />
-        <QuickAction to="/curiosities" icon="💡" label="Curiosidades" color="var(--accent2-soft)" />
+        <QuickAction to="/extras" icon="✨" label="Extras" color="var(--accent2-soft)" />
       </div>
 
       {/* Missão mensal */}

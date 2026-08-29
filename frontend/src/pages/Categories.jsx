@@ -179,6 +179,8 @@ export default function Categories() {
     setSelectedCategory(category);
   };
 
+  const toBookChapterUrl = (bookSlug, chapter) => `/bible?book=${bookSlug}&chapter=${chapter}`;
+
   const chapterOptions = useMemo(() => {
     return (bookSlug) => {
       const chapterCount = bookChapterMap[bookSlug] || 50;
@@ -302,16 +304,27 @@ export default function Categories() {
           <div style={{ display: 'grid', gap: 10 }}>
             {selectedCategory.booksList.map(book => {
               const chapterValue = selectedChapters[book.slug] || 1;
+              const openBook = () => navigate(toBookChapterUrl(book.slug, chapterValue));
+
               return (
                 <div key={book.slug} style={{
                   background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12,
                   padding: 10, display: 'grid', gap: 8
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>{book.label}</span>
                     <button
                       type="button"
-                      onClick={() => navigate(`/bible?book=${book.slug}&chapter=${chapterValue}`)}
+                      onClick={openBook}
+                      style={{
+                        border: 'none', background: 'transparent', color: 'var(--text)',
+                        padding: 0, fontWeight: 700, fontSize: 14, textAlign: 'left', cursor: 'pointer'
+                      }}
+                    >
+                      {book.label}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openBook}
                       style={{
                         border: 'none', borderRadius: 8, background: 'var(--accent)',
                         color: '#fff', fontWeight: 700, padding: '8px 10px', cursor: 'pointer'
@@ -354,12 +367,16 @@ export default function Categories() {
         margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '.08em'
       }}>📚 Curso Extra · Teologia</p>
 
-      <div className="card-tap" style={{
-        background: 'linear-gradient(135deg, var(--premium-soft), #fff)',
-        border: '1px solid var(--premium)', borderRadius: 14,
-        padding: 12, display: 'flex', alignItems: 'center', gap: 10,
-        cursor: 'pointer'
-      }}>
+      <div
+        className="card-tap"
+        onClick={() => navigate('/extras')}
+        style={{
+          background: 'linear-gradient(135deg, var(--premium-soft), #fff)',
+          border: '1px solid var(--premium)', borderRadius: 14,
+          padding: 12, display: 'flex', alignItems: 'center', gap: 10,
+          cursor: 'pointer'
+        }}
+      >
         <div style={{
           width: 42, height: 42, borderRadius: 12,
           background: 'var(--premium)', color: '#fff',
@@ -381,46 +398,80 @@ export default function Categories() {
 }
 
 function CategoryCard({ category, progress, active, onClick }) {
+  const navigate = useNavigate();
+
   return (
     <div
-      onClick={onClick}
       className="card-tap"
       style={{
         background: 'var(--card)',
         border: active ? `2px solid ${category.color}` : '1px solid var(--border)',
         borderRadius: 14, padding: 12, marginBottom: 10,
-        display: 'flex', alignItems: 'center', gap: 10,
         cursor: 'pointer'
       }}
     >
-      <div style={{
-        width: 42, height: 42, borderRadius: 12,
-        background: `${category.color}1a`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 20, flexShrink: 0
-      }}>{category.icon}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          width: 42, height: 42, borderRadius: 12,
+          background: `${category.color}1a`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 20, flexShrink: 0
+        }}>{category.icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <p style={{
+              fontSize: 14, fontWeight: 700, margin: 0,
+              color: 'var(--text)'
+            }}>{category.name}</p>
+            <span style={{
+              fontSize: 9, fontWeight: 600,
+              background: `${category.color}1a`, color: category.color,
+              padding: '2px 7px', borderRadius: 8
+            }}>{progress}%</span>
+          </div>
           <p style={{
-            fontSize: 14, fontWeight: 700, margin: 0,
-            color: 'var(--text)'
-          }}>{category.name}</p>
-          <span style={{
-            fontSize: 9, fontWeight: 600,
-            background: `${category.color}1a`, color: category.color,
-            padding: '2px 7px', borderRadius: 8
-          }}>{progress}%</span>
-        </div>
-        <p style={{
-          fontSize: 11, color: 'var(--muted)', margin: '2px 0 6px'
-        }}>{category.books}</p>
-        <div style={{ height: 4, background: 'rgba(0,0,0,.06)', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', width: `${progress}%`,
-            background: category.color, borderRadius: 2
-          }} />
+            fontSize: 11, color: 'var(--muted)', margin: '2px 0 6px'
+          }}>{category.books}</p>
+          <div style={{ height: 4, background: 'rgba(0,0,0,.06)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', width: `${progress}%`,
+              background: category.color, borderRadius: 2
+            }} />
+          </div>
         </div>
       </div>
+
+      {active && category.booksList && (
+        <div style={{
+          marginTop: 12,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 8
+        }}>
+          {category.booksList.map(book => (
+            <button
+              key={book.slug}
+              type="button"
+              onClick={() => navigate(`/bible?book=${book.slug}&chapter=1`)}
+              style={{
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                background: 'linear-gradient(180deg, var(--card), var(--bg))',
+                color: 'var(--text)',
+                padding: '10px 8px',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'left',
+                minHeight: 42,
+                boxShadow: '0 1px 0 rgba(15,23,42,0.04)'
+              }}
+            >
+              {book.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
