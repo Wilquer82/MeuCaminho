@@ -28,11 +28,16 @@ import Bible from './pages/Bible';
 import PaywallModal from './components/Home/PaywallModal';
 import InstallPwaPrompt from './components/UI/InstallPwaPrompt';
 
-// Rota protegida
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Carregando...</div>;
   return user ? children : <Navigate to="/login" replace />;
+}
+
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Carregando...</div>;
+  return !user ? children : <Navigate to="/" replace />;
 }
 
 export default function App() {
@@ -52,8 +57,8 @@ export default function App() {
 
       <Routes>
         {/* Públicas */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
         {/* Protegidas */}
         <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
@@ -71,7 +76,7 @@ export default function App() {
         <Route path="/premium" element={<PrivateRoute><Premium /></PrivateRoute>} />
         <Route path="/bible" element={<PrivateRoute><Bible /></PrivateRoute>} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={user ? '/' : '/login'} replace />} />
       </Routes>
 
       {user && <BottomNav />}
