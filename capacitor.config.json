@@ -1,0 +1,5 @@
+{
+  "appId": "com.meucaminho.app",
+  "appName": "MeuCaminho",
+  "webDir": "frontend/dist"
+}

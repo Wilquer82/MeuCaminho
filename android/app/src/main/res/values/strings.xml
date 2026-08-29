@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MeuCaminho</string>
+    <string name="title_activity_main">MeuCaminho</string>
+    <string name="package_name">com.meucaminho.app</string>
+    <string name="custom_url_scheme">com.meucaminho.app</string>
+</resources>
