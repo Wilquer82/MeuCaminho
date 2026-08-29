@@ -4,16 +4,39 @@ const { auth } = require('../middleware/auth');
 const QuizQuestion = require('../models/QuizQuestion');
 const User = require('../models/User');
 
+function normalizeDifficulty(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  const map = {
+    basico: 'básico',
+    basica: 'básico',
+    basic: 'básico',
+    intermediario: 'intermediário',
+    intermedio: 'intermediário',
+    intermediate: 'intermediário',
+    avancado: 'avançado',
+    advanced: 'avançado'
+  };
+
+  return map[normalized] || (['básico', 'intermediário', 'avançado'].includes(normalized) ? normalized : null);
+}
+
 // GET /api/quiz — Pegar perguntas de revisão
 router.get('/', auth, async (req, res) => {
   try {
     const { difficulty, limit = 5 } = req.query;
-    const filter = difficulty ? { difficulty } : {};
+    const normalizedDifficulty = normalizeDifficulty(difficulty);
+    const filter = normalizedDifficulty ? { difficulty: normalizedDifficulty } : {};
 
-    const questions = await QuizQuestion.aggregate([
+    let questions = await QuizQuestion.aggregate([
       { $match: filter },
-      { $sample: { size: parseInt(limit) } }
+      { $sample: { size: parseInt(limit, 10) || 5 } }
     ]);
+
+    if (!questions.length && normalizedDifficulty) {
+      questions = await QuizQuestion.aggregate([
+        { $sample: { size: parseInt(limit, 10) || 5 } }
+      ]);
+    }
 
     // Não enviar a resposta correta no retorno
     const sanitized = questions.map(q => ({

@@ -157,9 +157,9 @@ const categories = [
 ];
 
 export default function Categories() {
-  const [active, setActive] = useState('poeticos');
+  const [active, setActive] = useState('pentateuco');
   const [progress, setProgress] = useState({});
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [selectedChapters, setSelectedChapters] = useState({});
   const navigate = useNavigate();
 
@@ -167,6 +167,9 @@ export default function Categories() {
     api.get('/progress/summary')
       .then(({ data }) => setProgress(data.categories || {}))
       .catch(() => setProgress({}));
+
+    setSelectedCategory(categories[0]);
+    setActive('pentateuco');
   }, []);
 
   const handleCategoryClick = (category) => {
@@ -194,8 +197,39 @@ export default function Categories() {
         Categorias Bíblicas
       </h2>
       <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 14px' }}>
-        Em ordem bíblica e pronta para abrir no capítulo escolhido
+        Escolha a categoria e abra os livros diretamente na Bíblia.
       </p>
+
+      <div style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 14,
+        padding: 12,
+        marginBottom: 14
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '.08em' }}>
+          Início rápido
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedCategory(categories[0]);
+            setActive(categories[0].id);
+          }}
+          style={{
+            width: '100%',
+            border: 'none',
+            borderRadius: 10,
+            background: 'linear-gradient(135deg, var(--accent), #1a5c20)',
+            color: '#fff',
+            fontWeight: 700,
+            padding: '10px 12px',
+            cursor: 'pointer'
+          }}
+        >
+          Escolher livros por categoria
+        </button>
+      </div>
 
       <div className="card-tap" style={{
         background: 'linear-gradient(135deg, var(--accent), #1a5c20)',

@@ -21,6 +21,14 @@ export default function Review() {
   const startQuiz = async (level) => {
     try {
       const { data } = await api.get('/quiz', { params: { difficulty: level, limit: 5 } });
+
+      if (!data || data.length === 0) {
+        setQuestions([]);
+        setActiveLevel(null);
+        alert('Nenhuma pergunta disponível para este nível no momento.');
+        return;
+      }
+
       setQuestions(data);
       setActiveLevel(level);
       setCurrentIdx(0);
