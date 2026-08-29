@@ -91,4 +91,35 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// PATCH /api/auth/me - Atualizar dados do usuário
+router.patch('/me', auth, async (req, res) => {
+  try {
+    const { name, selectedMissionPlan, firstAccess, activeCategory } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+    if (name) user.name = name;
+    if (selectedMissionPlan) user.selectedMissionPlan = selectedMissionPlan;
+    if (typeof firstAccess === 'boolean') user.firstAccess = firstAccess;
+    if (activeCategory) user.activeCategory = activeCategory;
+
+    await user.save();
+    
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      xp: user.xp,
+      level: user.level,
+      streak: user.streak,
+      selectedMissionPlan: user.selectedMissionPlan,
+      firstAccess: user.firstAccess,
+      activeCategory: user.activeCategory
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

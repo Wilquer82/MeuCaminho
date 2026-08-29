@@ -62,6 +62,7 @@ app.use('/api/progress', require('./routes/progress'));
 app.use('/api/devotional', require('./routes/devotional'));
 app.use('/api/curiosities', require('./routes/curiosities'));
 app.use('/api/missions', require('./routes/missions'));
+app.use('/api/achievements', require('./routes/achievements'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/theology', require('./routes/theology'));
 app.use('/api/community', require('./routes/community'));

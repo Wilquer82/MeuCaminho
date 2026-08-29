@@ -6,15 +6,22 @@ import api from '../services/api';
 import XPProgress from '../components/Home/XPProgress';
 import StreakCounter from '../components/Home/StreakCounter';
 import DailyLessonCard from '../components/Home/DailyLessonCard';
+import DailyMissionBoard from '../components/Home/DailyMissionBoard';
+import MissionSelectionModal from '../components/UI/MissionSelectionModal';
 
 export default function Home() {
   const { user, updateUser } = useAuth();
   const { triggerPaywall } = useSubscription();
   const [todayLesson, setTodayLesson] = useState(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
+  const [showMissionModal, setShowMissionModal] = useState(false);
 
   useEffect(() => {
     loadTodayLesson();
+    // Mostrar modal se for primeira visita
+    if (user?.firstAccess) {
+      setShowMissionModal(true);
+    }
   }, []);
 
   const loadTodayLesson = async () => {
@@ -48,12 +55,31 @@ export default function Home() {
     }
   };
 
+  const handleMissionSelection = async (plan) => {
+    try {
+      await api.patch('/auth/me', {
+        selectedMissionPlan: plan,
+        firstAccess: false
+      });
+      updateUser({ selectedMissionPlan: plan, firstAccess: false });
+      setShowMissionModal(false);
+    } catch (err) {
+      console.error('Erro ao salvar missão:', err);
+    }
+  };
+
   if (!user) return null;
 
   const firstName = user.name.split(' ')[0];
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
+
+      {/* Modal de seleção de missão (primeira visita) */}
+      <MissionSelectionModal 
+        isOpen={showMissionModal}
+        onSelect={handleMissionSelection}
+      />
 
       {/* Saudação + Streak */}
       <div style={{
@@ -69,6 +95,9 @@ export default function Home() {
 
       {/* XP + Nível */}
       <XPProgress xp={user.xp || 0} level={user.level || 1} />
+
+      {/* Quadro de Missão Diária */}
+      <DailyMissionBoard />
 
       {/* Lição de hoje */}
       <div style={{ marginBottom: 14 }}>

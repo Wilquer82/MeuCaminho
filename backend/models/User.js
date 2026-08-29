@@ -34,6 +34,21 @@ const userSchema = new mongoose.Schema({
            'evangelhos', 'cartas', 'apocalipse', 'teologia']
   },
 
+  // === MISSÕES E DESAFIOS ===
+  selectedMissionPlan: {
+    type: String,
+    enum: ['free', 'monthly', 'semiannual', 'annual'],
+    default: 'free'
+  },
+  
+  // === CONQUISTAS ===
+  unlockedAchievements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' }],
+  
+  // === RASTREAMENTO ===
+  lessonsCompleted: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
+  quizScore: { type: Number, default: 0 },
+  firstAccess: { type: Boolean, default: true },
+
   // === SOCIAL ===
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   duoPartner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
