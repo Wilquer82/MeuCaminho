@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,16 +7,28 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const submitLockRef = useRef(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading || submitLockRef.current) return;
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    if (!normalizedEmail || !password.trim()) {
+      setError('Informe e-mail e senha para continuar.');
+      return;
+    }
+
     setError('');
     setLoading(true);
+    submitLockRef.current = true;
+
     try {
-      await login(email, password);
-      navigate('/');
+      await login(normalizedEmail, password);
+      navigate('/', { replace: true });
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message || '';
@@ -34,6 +46,7 @@ export default function Login() {
       }
     } finally {
       setLoading(false);
+      submitLockRef.current = false;
     }
   };
 

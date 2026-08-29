@@ -82,19 +82,18 @@ export default function Profile() {
 
       {/* Status Premium */}
       {user.plan === 'free' ? (
-        <Link to="/premium" style={{ textDecoration: 'none' }}>
-          <div className="card-tap gradient-premium" style={{
-            borderRadius: 16, padding: 16, marginBottom: 20, color: '#fff',
-            cursor: 'pointer', textAlign: 'center'
-          }}>
-            <p style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
-              💎 Assine o Premium
-            </p>
-            <p style={{ fontSize: 12, opacity: .9, margin: '4px 0 0' }}>
-              Lições ilimitadas · Teologia completa · Sem anúncios
-            </p>
-          </div>
-        </Link>
+        <div className="card-tap" style={{
+          borderRadius: 16, padding: 16, marginBottom: 20, color: '#fff',
+          cursor: 'default', textAlign: 'center',
+          background: 'linear-gradient(135deg, rgba(20, 83, 45, 0.9), rgba(34, 197, 94, 0.8))'
+        }}>
+          <p style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+            Versão de Teste
+          </p>
+          <p style={{ fontSize: 12, opacity: .9, margin: '4px 0 0' }}>
+            Experimente a jornada atual com recursos em evolução.
+          </p>
+        </div>
       ) : (
         <div style={{
           background: 'var(--premium-soft)', border: '1px solid var(--premium)',

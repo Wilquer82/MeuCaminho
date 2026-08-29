@@ -1,9 +1,44 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
+const https = require('https');
 require('dotenv').config();
 const conectarDB = require('./config/db');
 
 const app = express();
+
+function keepRenderAwake() {
+  const rawBaseUrl = process.env.RENDER_EXTERNAL_URL || process.env.RENDER_URL;
+  if (!rawBaseUrl || /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(rawBaseUrl)) {
+    return;
+  }
+
+  const normalizedBaseUrl = rawBaseUrl.replace(/\/$/, '');
+  const healthUrl = normalizedBaseUrl.includes('/api')
+    ? `${normalizedBaseUrl.replace(/\/api$/, '')}/health`
+    : `${normalizedBaseUrl}/health`;
+
+  const target = new URL(healthUrl);
+  const client = target.protocol === 'https:' ? https : http;
+
+  const ping = () => {
+    const request = client.get(target, (res) => {
+      res.resume();
+      if (res.statusCode >= 200 && res.statusCode < 400) {
+        console.log(`✅ Keepalive Render: ${res.statusCode} ${target.href}`);
+      } else {
+        console.warn(`⚠️ Keepalive Render respondeu ${res.statusCode} em ${target.href}`);
+      }
+    });
+
+    request.on('error', (error) => {
+      console.warn(`⚠️ Keepalive Render falhou: ${error.message}`);
+    });
+  };
+
+  ping();
+  setInterval(ping, 14 * 60 * 1000);
+}
 
 // Middleware globais
 app.use(cors());
@@ -57,6 +92,7 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    keepRenderAwake();
   });
 }
 

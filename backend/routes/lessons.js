@@ -24,14 +24,19 @@ router.get('/', auth, async (req, res) => {
 router.get('/today', auth, checkDailyLimit, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const lesson = await Lesson.findOne({
-      category: user.activeCategory,
+    const category = user.activeCategory || 'poeticos';
+    const lessons = await Lesson.find({
+      category,
       isFree: true
     }).sort({ order: 1 });
 
-    if (!lesson) {
+    if (!lessons.length) {
       return res.status(404).json({ message: 'Nenhuma lição disponível' });
     }
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const seed = [...todayKey].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const lesson = lessons[Math.abs(seed) % lessons.length];
 
     res.json(lesson);
   } catch (err) {

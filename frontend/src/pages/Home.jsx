@@ -158,22 +158,19 @@ export default function Home() {
         </div>
       </Link>
 
-      {/* Banner Premium */}
-      {user.plan === 'free' && (
-        <Link to="/premium" style={{ textDecoration: 'none' }}>
-          <div className="card-tap gradient-premium" style={{
-            borderRadius: 16, padding: 16, marginTop: 14, color: '#fff',
-            cursor: 'pointer', textAlign: 'center'
-          }}>
-            <p style={{ fontSize: 11, opacity: .9, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-              💎 Meu Caminho de Luz Premium
-            </p>
-            <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
-              Lições ilimitadas · Teologia completa · Sem anúncios
-            </p>
-          </div>
-        </Link>
-      )}
+      {/* Versão de teste */}
+      <div className="card-tap" style={{
+        borderRadius: 16, padding: 16, marginTop: 14, color: '#fff',
+        cursor: 'default', textAlign: 'center',
+        background: 'linear-gradient(135deg, rgba(20, 83, 45, 0.9), rgba(34, 197, 94, 0.8))'
+      }}>
+        <p style={{ fontSize: 11, opacity: .9, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+          Versão de Teste
+        </p>
+        <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
+          Explore a jornada com leitura, revisão e conteúdo em evolução.
+        </p>
+      </div>
 
     </div>
   );

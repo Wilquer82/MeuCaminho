@@ -3,8 +3,17 @@ import { useEffect, useState } from 'react';
 export default function InstallPwaPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    const checkStandalone = () => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      setIsStandalone(standalone);
+      setVisible(!standalone);
+    };
+
+    checkStandalone();
+
     const handler = event => {
       event.preventDefault();
       setDeferredPrompt(event);
@@ -12,18 +21,31 @@ export default function InstallPwaPrompt() {
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    window.matchMedia('(display-mode: standalone)').addEventListener?.('change', checkStandalone);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.matchMedia('(display-mode: standalone)').removeEventListener?.('change', checkStandalone);
+    };
   }, []);
 
-  if (!visible) return null;
+  if (isStandalone || !visible) return null;
 
   const install = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setVisible(false);
-    setDeferredPrompt(null);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setVisible(false);
+      setDeferredPrompt(null);
+      return;
+    }
+
+    const isApple = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const msg = isApple
+      ? 'No Safari, use o botão de Compartilhar e escolha “Adicionar à Tela de Início”.'
+      : 'No navegador, use o menu de opções e escolha “Instalar app” ou “Adicionar à tela inicial”.';
+
+    alert(msg);
   };
 
   return (
@@ -43,8 +65,8 @@ export default function InstallPwaPrompt() {
       boxShadow: '0 10px 30px rgba(0,0,0,0.25)'
     }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: 13 }}>Instalar app</div>
-        <div style={{ fontSize: 11, opacity: 0.9 }}>Acesse mais rápido no celular.</div>
+        <div style={{ fontWeight: 700, fontSize: 13 }}>Atalho do app não criado</div>
+        <div style={{ fontSize: 11, opacity: 0.9 }}>Instale para entrar mais rápido no celular.</div>
       </div>
       <button
         type="button"
