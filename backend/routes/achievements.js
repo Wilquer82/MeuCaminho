@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+// ✅ LINHA 4 CORRIGIDA — agora com chaves {}
+const { auth } = require('../middleware/auth');
 const Achievement = require('../models/Achievement');
 const User = require('../models/User');
+
 
 // GET /api/achievements - Lista todas as conquistas
 router.get('/', auth, async (req, res) => {
@@ -21,6 +23,7 @@ router.get('/', auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // GET /api/achievements/me - Progresso do usuário
 router.get('/me', auth, async (req, res) => {
@@ -72,6 +75,7 @@ router.get('/me', auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // POST /api/achievements/seed - Criar conquistas padrão (admin)
 router.post('/seed', auth, async (req, res) => {
@@ -170,5 +174,6 @@ router.post('/seed', auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;
