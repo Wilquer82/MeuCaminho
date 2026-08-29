@@ -3,8 +3,9 @@
   --card: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
-  --accent: #297a2e;
-  --accent-soft: rgba(41, 122, 46, .14);
+  --accent: #1d5a2d;
+  --accent-soft: rgba(29, 90, 45, .14);
+  --accent-strong: #143e22;
   --accent2: #d97706;
   --accent2-soft: rgba(217, 119, 6, .14);
   --border: rgba(15, 23, 42, .08);
@@ -12,6 +13,7 @@
   --premium-soft: rgba(139, 92, 246, .12);
   --success: #059669;
   --danger: #dc2626;
+  --shadow: rgba(24, 39, 29, 0.08);
 }
 
 :root[data-theme='dark'] {
@@ -23,6 +25,7 @@
   --accent-soft: rgba(91, 190, 98, .18);
   --accent2-soft: rgba(245, 158, 11, .18);
   --premium-soft: rgba(167, 139, 250, .18);
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -33,15 +36,23 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  background: var(--bg);
+}
+
 html, body, #root {
+  min-height: 100%;
   height: 100%;
 }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(180deg, #f4f1ea 0%, var(--bg) 18%, var(--bg) 100%);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 body, input, textarea, select {
@@ -57,6 +68,10 @@ button {
   cursor: pointer;
 }
 
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -64,6 +79,11 @@ a {
 
 input, textarea, select {
   font-family: inherit;
+}
+
+#root {
+  min-height: 100vh;
+  background: transparent;
 }
 
 /* ===== Animações ===== */

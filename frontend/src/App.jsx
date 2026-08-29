@@ -51,7 +51,9 @@ export default function App() {
       minHeight: '100vh',
       background: 'var(--bg)',
       position: 'relative',
-      boxShadow: '0 0 40px rgba(0,0,0,.06)'
+      boxShadow: '0 0 40px rgba(0,0,0,.06)',
+      paddingTop: 'env(safe-area-inset-top, 0px)',
+      paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))'
     }}>
       {user && <Header />}
 

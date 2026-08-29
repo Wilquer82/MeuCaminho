@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const CACHE_KEY = 'meucaminho_bible_cache';
+const VERSION_CACHE_KEY = 'meucaminho_bible_version_cache';
 
 function getCachedChapterCache() {
   try {
@@ -13,8 +14,40 @@ function getCachedChapterCache() {
   }
 }
 
+function getVersionCache() {
+  try {
+    return JSON.parse(localStorage.getItem(VERSION_CACHE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
 function setCachedChapterCache(cache) {
   localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+}
+
+function setVersionCache(cache) {
+  localStorage.setItem(VERSION_CACHE_KEY, JSON.stringify(cache));
+}
+
+function normalizeChapterData(bookName, selectedBookId, selectedChapter, translation, payload) {
+  const chapterData = payload?.data || payload || {};
+  const verseList = Array.isArray(chapterData.verses) ? chapterData.verses : [];
+  return {
+    book: bookName,
+    bookId: selectedBookId,
+    chapter: selectedChapter,
+    reference: `${bookName} ${selectedChapter}`,
+    verses: verseList.map((text, index) => ({
+      verse: Number(chapterData.verse || 1) + index,
+      text
+    })),
+    translation,
+    translationName: translation.toUpperCase(),
+    completed: false,
+    xpReward: 10,
+    storedAt: new Date().toISOString()
+  };
 }
 
 export default function Bible() {
@@ -32,6 +65,8 @@ export default function Bible() {
   const [loadingChapter, setLoadingChapter] = useState(false);
   const [message, setMessage] = useState('');
   const [offlineSaved, setOfflineSaved] = useState(false);
+  const [versionOfflineSaved, setVersionOfflineSaved] = useState(false);
+  const [savingVersion, setSavingVersion] = useState(false);
 
   async function loadPublicBooks() {
     const response = await fetch('https://api.midvash.com/v1/books');
@@ -83,6 +118,10 @@ export default function Bible() {
     const cache = getCachedChapterCache();
     const chapterKey = `${translation}:${bookId}:${chapter}`;
     setOfflineSaved(Boolean(cache[chapterKey]));
+
+    const versionCache = getVersionCache();
+    const hasSavedVersion = Boolean(versionCache[translation] && Object.keys(versionCache[translation].books || {}).length > 0);
+    setVersionOfflineSaved(hasSavedVersion);
   }, [translation, bookId, chapter]);
 
   const selectedBook = books.find(book => book.id === bookId);
@@ -91,6 +130,15 @@ export default function Bible() {
     try {
       setLoadingChapter(true);
       setMessage('');
+
+      const versionCache = getVersionCache();
+      const offlineVersionChapter = versionCache[translation]?.books?.[selectedBookId]?.[selectedChapter];
+      if (offlineVersionChapter) {
+        setReading(offlineVersionChapter);
+        setLoadingChapter(false);
+        return;
+      }
+
       let data;
       try {
         ({ data } = await api.get(`/bible/${selectedBookId}/${selectedChapter}`, { params: { translation } }));
@@ -98,22 +146,19 @@ export default function Bible() {
         const response = await fetch(`https://api.midvash.com/v1/${translation}/${selectedBookId}/${selectedChapter}`);
         const payload = await response.json();
         if (!response.ok) throw error;
-        data = {
-          book: selectedBook?.name,
-          bookId: selectedBookId,
-          chapter: selectedChapter,
-          reference: `${selectedBook?.name} ${selectedChapter}`,
-          verses: payload.data.verses.map((text, index) => ({ verse: payload.data.verse + index, text })),
-          translation,
-          translationName: translation.toUpperCase(),
-          completed: false,
-          xpReward: 10
-        };
+        data = normalizeChapterData(selectedBook?.name || selectedBookId, selectedBookId, selectedChapter, translation, payload);
       }
       setReading(data);
     } catch {
-      setReading(null);
-      setMessage('Não foi possível carregar este capítulo.');
+      const versionCache = getVersionCache();
+      const offlineFallback = versionCache[translation]?.books?.[bookId]?.[chapter];
+      if (offlineFallback) {
+        setReading(offlineFallback);
+        setMessage('Carregando capítulo salvo localmente.');
+      } else {
+        setReading(null);
+        setMessage('Não foi possível carregar este capítulo.');
+      }
     } finally {
       setLoadingChapter(false);
     }
@@ -158,6 +203,57 @@ export default function Bible() {
     setMessage('Capítulo removido do cache offline.');
   }
 
+  async function saveFullTranslationOffline() {
+    if (!books.length || savingVersion) return;
+
+    setSavingVersion(true);
+    setMessage('Salvando versão da Bíblia para uso offline...');
+
+    try {
+      const versionCache = getVersionCache();
+      const fullVersion = { savedAt: new Date().toISOString(), books: {} };
+
+      for (const book of books) {
+        fullVersion.books[book.id] = {};
+
+        for (let chapterNumber = 1; chapterNumber <= book.chapters; chapterNumber += 1) {
+          try {
+            const response = await api.get(`/bible/${book.id}/${chapterNumber}`, { params: { translation } });
+            fullVersion.books[book.id][chapterNumber] = {
+              ...response.data,
+              storedAt: new Date().toISOString()
+            };
+          } catch {
+            try {
+              const fallbackResponse = await fetch(`https://api.midvash.com/v1/${translation}/${book.id}/${chapterNumber}`);
+              const payload = await fallbackResponse.json();
+              if (fallbackResponse.ok) {
+                fullVersion.books[book.id][chapterNumber] = normalizeChapterData(book.name, book.id, chapterNumber, translation, payload);
+              }
+            } catch {
+              // Ignora capítulos indisponíveis para manter o restante da versão salva.
+            }
+          }
+        }
+      }
+
+      versionCache[translation] = fullVersion;
+      setVersionCache(versionCache);
+      setVersionOfflineSaved(true);
+      setMessage(`Versão ${translation.toUpperCase()} salva para acesso offline.`);
+    } finally {
+      setSavingVersion(false);
+    }
+  }
+
+  function removeFullTranslationOffline() {
+    const versionCache = getVersionCache();
+    delete versionCache[translation];
+    setVersionCache(versionCache);
+    setVersionOfflineSaved(false);
+    setMessage(`Versão ${translation.toUpperCase()} removida do cache offline.`);
+  }
+
   if (loading) return <div style={{ padding: 24 }}>Carregando Bíblia...</div>;
 
   return (
@@ -180,6 +276,22 @@ export default function Bible() {
             <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
           ))}
         </select>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={versionOfflineSaved ? removeFullTranslationOffline : saveFullTranslationOffline}
+          disabled={savingVersion}
+          style={{
+            ...buttonStyle,
+            marginTop: 0,
+            background: versionOfflineSaved ? '#6b7280' : '#0f766e',
+            opacity: savingVersion ? 0.7 : 1
+          }}
+        >
+          {savingVersion ? 'Salvando versão...' : versionOfflineSaved ? 'Remover versão offline' : 'Salvar versão completa offline'}
+        </button>
       </div>
 
       {loadingChapter ? (

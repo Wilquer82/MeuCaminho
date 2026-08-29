@@ -18,11 +18,12 @@ export default function BottomNav() {
       transform: 'translateX(-50%)',
       width: '100%',
       maxWidth: 480,
-      background: 'var(--card)',
+      background: 'rgba(255,255,255,0.9)',
+      backdropFilter: 'blur(10px)',
       borderTop: '1px solid var(--border)',
       display: 'flex',
       justifyContent: 'space-around',
-      padding: '6px 0 20px',
+      padding: '8px 0 calc(12px + env(safe-area-inset-bottom, 0px))',
       zIndex: 100,
       boxShadow: '0 -4px 20px rgba(0,0,0,.04)'
     }}>
