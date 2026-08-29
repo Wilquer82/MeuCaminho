@@ -139,6 +139,25 @@ export default function Bible() {
   }, [translation, bookId, chapter]);
 
   const selectedBook = books.find(book => book.id === bookId);
+  const selectedBookIndex = books.findIndex(book => book.id === bookId);
+
+  function goToNextChapter() {
+    if (!selectedBook) return;
+
+    if (chapter < selectedBook.chapters) {
+      setChapter(chapter + 1);
+      return;
+    }
+
+    const nextBookIndex = selectedBookIndex + 1;
+    if (nextBookIndex < books.length) {
+      setBookId(books[nextBookIndex].id);
+      setChapter(1);
+      return;
+    }
+
+    setChapter(selectedBook.chapters);
+  }
 
   async function loadChapter(selectedBookId, selectedChapter) {
     try {
@@ -313,11 +332,28 @@ export default function Bible() {
         <select value={translation} onChange={event => setTranslation(event.target.value)} style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
           {translations.map(version => <option key={version.id} value={version.id}>{version.name} ({version.language})</option>)}
         </select>
-        <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={fieldStyle}>
-          {Array.from({ length: selectedBook?.chapters || 1 }, (_, index) => (
-            <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', gap: 8, gridColumn: '1 / -1' }}>
+          <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={{ ...fieldStyle, flex: 1 }}>
+            {Array.from({ length: selectedBook?.chapters || 1 }, (_, index) => (
+              <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={goToNextChapter}
+            style={{
+              ...buttonStyle,
+              marginTop: 0,
+              width: 'auto',
+              minWidth: 120,
+              padding: '12px 16px',
+              background: 'var(--accent2)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Próximo capítulo
+          </button>
+        </div>
       </div>
 
       <div style={{ marginBottom: 16 }}>
