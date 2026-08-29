@@ -45,7 +45,7 @@ export default function Login() {
         }}>📖</div>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 4px' }}>Meu Caminho de Luz</h1>
         <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
-          A Palavra Viva — O Duolingo da Bíblia
+          A Palavra Viva
         </p>
       </div>
 

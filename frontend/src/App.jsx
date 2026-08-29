@@ -26,6 +26,7 @@ import Bible from './pages/Bible';
 
 // Componentes
 import PaywallModal from './components/Home/PaywallModal';
+import InstallPwaPrompt from './components/UI/InstallPwaPrompt';
 
 // Rota protegida
 function PrivateRoute({ children }) {
@@ -81,6 +82,8 @@ export default function App() {
         completedToday={paywallData.completedToday}
         dailyLimit={paywallData.dailyLimit}
       />
+
+      {user && <InstallPwaPrompt />}
     </div>
   );
 }

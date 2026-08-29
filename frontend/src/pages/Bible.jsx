@@ -3,6 +3,20 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
+const CACHE_KEY = 'meucaminho_bible_cache';
+
+function getCachedChapterCache() {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setCachedChapterCache(cache) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+}
+
 export default function Bible() {
   const [searchParams] = useSearchParams();
   const { updateUser } = useAuth();
@@ -17,6 +31,7 @@ export default function Bible() {
   const [loading, setLoading] = useState(true);
   const [loadingChapter, setLoadingChapter] = useState(false);
   const [message, setMessage] = useState('');
+  const [offlineSaved, setOfflineSaved] = useState(false);
 
   async function loadPublicBooks() {
     const response = await fetch('https://api.midvash.com/v1/books');
@@ -63,6 +78,12 @@ export default function Bible() {
     if (!bookId) return;
     loadChapter(bookId, chapter);
   }, [bookId, chapter, translation]);
+
+  useEffect(() => {
+    const cache = getCachedChapterCache();
+    const chapterKey = `${translation}:${bookId}:${chapter}`;
+    setOfflineSaved(Boolean(cache[chapterKey]));
+  }, [translation, bookId, chapter]);
 
   const selectedBook = books.find(book => book.id === bookId);
 
@@ -115,6 +136,28 @@ export default function Bible() {
     }
   }
 
+  function saveCurrentChapterOffline() {
+    if (!reading) return;
+    const cache = getCachedChapterCache();
+    const chapterKey = `${translation}:${bookId}:${chapter}`;
+    cache[chapterKey] = {
+      ...reading,
+      storedAt: new Date().toISOString()
+    };
+    setCachedChapterCache(cache);
+    setOfflineSaved(true);
+    setMessage('Capítulo salvo para leitura offline.');
+  }
+
+  function removeCurrentChapterOffline() {
+    const cache = getCachedChapterCache();
+    const chapterKey = `${translation}:${bookId}:${chapter}`;
+    delete cache[chapterKey];
+    setCachedChapterCache(cache);
+    setOfflineSaved(false);
+    setMessage('Capítulo removido do cache offline.');
+  }
+
   if (loading) return <div style={{ padding: 24 }}>Carregando Bíblia...</div>;
 
   return (
@@ -162,9 +205,14 @@ export default function Bible() {
               ))}
             </div>
           </section>
-          <button type="button" onClick={completeReading} disabled={reading.completed} style={{ ...buttonStyle, opacity: reading.completed ? .6 : 1 }}>
-            {reading.completed ? 'Leitura concluída' : 'Concluir leitura e ganhar XP'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+            <button type="button" onClick={completeReading} disabled={reading.completed} style={{ ...buttonStyle, flex: 1, opacity: reading.completed ? .6 : 1 }}>
+              {reading.completed ? 'Leitura concluída' : 'Concluir leitura e ganhar XP'}
+            </button>
+            <button type="button" onClick={offlineSaved ? removeCurrentChapterOffline : saveCurrentChapterOffline} style={{ ...buttonStyle, flex: 1, background: offlineSaved ? '#6b7280' : '#1d7b38' }}>
+              {offlineSaved ? 'Remover offline' : 'Salvar offline'}
+            </button>
+          </div>
         </>
       )}
 

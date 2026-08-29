@@ -3,17 +3,37 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import api from '../services/api';
+import { requestNotificationPermission, scheduleDailyReadingReminder } from '../utils/mobileNotifications';
 
 export default function Profile() {
   const { user, logout, theme, setTheme } = useAuth();
   const { subscriptionStatus, cancelSubscription } = useSubscription();
   const [readingStats, setReadingStats] = useState({ totalChaptersRead: 0, readingXp: 0 });
+  const [bibleVersion, setBibleVersion] = useState(() => localStorage.getItem('bibleTranslation') || 'nvi');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('readingReminderEnabled') === 'true');
 
   useEffect(() => {
     api.get('/progress/summary')
       .then(({ data }) => setReadingStats(data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('bibleTranslation', bibleVersion);
+  }, [bibleVersion]);
+
+  const handleNotificationsToggle = async () => {
+    const nextValue = !notificationsEnabled;
+    setNotificationsEnabled(nextValue);
+    localStorage.setItem('readingReminderEnabled', String(nextValue));
+
+    if (nextValue) {
+      const permission = await requestNotificationPermission();
+      if (permission === 'granted') {
+        scheduleDailyReadingReminder();
+      }
+    }
+  };
 
   if (!user) return null;
 
@@ -143,8 +163,30 @@ export default function Profile() {
         background: 'var(--card)', border: '1px solid var(--border)',
         borderRadius: 14, overflow: 'hidden'
       }}>
-        <MenuItem icon="👤" label="Editar perfil" />
-        <MenuItem icon="🔔" label="Notificações" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderBottom: '1px solid var(--border)' }}>
+          <span style={{ fontSize: 18 }}>📖</span>
+          <span style={{ fontSize: 14, fontWeight: 500, flex: 1 }}>Versão da Bíblia</span>
+          <select
+            value={bibleVersion}
+            onChange={event => setBibleVersion(event.target.value)}
+            style={{ border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg)', color: 'var(--text)', padding: '6px 8px' }}
+          >
+            <option value="nvi">NVI</option>
+            <option value="ara">ARA</option>
+            <option value="alb">ALB</option>
+            <option value="kjv">KJV</option>
+          </select>
+        </div>
+
+        <div
+          onClick={handleNotificationsToggle}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+        >
+          <span style={{ fontSize: 18 }}>🔔</span>
+          <span style={{ fontSize: 14, fontWeight: 500, flex: 1 }}>Lembretes diários</span>
+          <span style={{ color: 'var(--muted)', fontSize: 12 }}>{notificationsEnabled ? 'Ativo' : 'Desativado'}</span>
+        </div>
+
         <div
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
