@@ -1,24 +1,36 @@
 import axios from 'axios';
 
+const productionApiUrl = 'https://meucaminhoback.onrender.com/api';
+
 function resolveApiBaseUrl() {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL.replace(/\/$/, '');
   }
 
+  const isNativeMobile = typeof window !== 'undefined' && (
+    !!window.Capacitor ||
+    /android|iphone|ipad|ipod/i.test(navigator.userAgent)
+  );
+
   const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocalHost = ['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(currentHost);
+
+  if (isNativeMobile) {
+    return productionApiUrl;
+  }
 
   if (import.meta.env.DEV) {
-    if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+    if (currentHost && !isLocalHost) {
       return `http://${currentHost}:3000/api`;
     }
     return 'http://localhost:3000/api';
   }
 
-  if (currentHost && !['localhost', '127.0.0.1'].includes(currentHost)) {
+  if (currentHost && !isLocalHost) {
     return `https://${currentHost}/api`;
   }
 
-  return 'https://meucaminhoback.onrender.com/api';
+  return productionApiUrl;
 }
 
 const api = axios.create({

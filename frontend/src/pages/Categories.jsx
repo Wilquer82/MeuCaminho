@@ -159,8 +159,6 @@ const categories = [
 export default function Categories() {
   const [active, setActive] = useState('pentateuco');
   const [progress, setProgress] = useState({});
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [selectedChapters, setSelectedChapters] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -168,28 +166,14 @@ export default function Categories() {
       .then(({ data }) => setProgress(data.categories || {}))
       .catch(() => setProgress({}));
 
-    setSelectedCategory(categories[0]);
     setActive('pentateuco');
   }, []);
 
   const handleCategoryClick = (category) => {
-    if (selectedCategory?.id === category.id) {
-      setSelectedCategory(null);
-      return;
-    }
-
-    setActive(category.id);
-    setSelectedCategory(category);
+    setActive(prev => prev === category.id ? category.id : category.id);
   };
 
   const toBookChapterUrl = (bookSlug, chapter) => `/bible?book=${bookSlug}&chapter=${chapter}`;
-
-  const chapterOptions = useMemo(() => {
-    return (bookSlug) => {
-      const chapterCount = bookChapterMap[bookSlug] || 50;
-      return Array.from({ length: chapterCount }, (_, index) => index + 1);
-    };
-  }, []);
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
@@ -212,10 +196,7 @@ export default function Categories() {
         </p>
         <button
           type="button"
-          onClick={() => {
-            setSelectedCategory(categories[0]);
-            setActive(categories[0].id);
-          }}
+          onClick={() => setActive('pentateuco')}
           style={{
             width: '100%',
             border: 'none',
@@ -317,80 +298,6 @@ export default function Categories() {
         />
       ))}
 
-      {selectedCategory && (
-        <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16,
-          padding: 12, marginTop: 8, marginBottom: 18
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, margin: 0, color: 'var(--muted)' }}>
-              Livros de {selectedCategory.name}
-            </p>
-            <button
-              type="button"
-              onClick={() => setSelectedCategory(null)}
-              style={{ border: 'none', background: 'transparent', color: 'var(--accent)', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Fechar
-            </button>
-          </div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
-            {selectedCategory.booksList.map(book => {
-              const chapterValue = selectedChapters[book.slug] || 1;
-              const openBook = () => navigate(toBookChapterUrl(book.slug, chapterValue));
-
-              return (
-                <div key={book.slug} style={{
-                  background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12,
-                  padding: 10, display: 'grid', gap: 8
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <button
-                      type="button"
-                      onClick={openBook}
-                      style={{
-                        border: 'none', background: 'transparent', color: 'var(--text)',
-                        padding: 0, fontWeight: 700, fontSize: 14, textAlign: 'left', cursor: 'pointer'
-                      }}
-                    >
-                      {book.label}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={openBook}
-                      style={{
-                        border: 'none', borderRadius: 8, background: 'var(--accent)',
-                        color: '#fff', fontWeight: 700, padding: '8px 10px', cursor: 'pointer'
-                      }}
-                    >
-                      Abrir
-                    </button>
-                  </div>
-
-                  <label style={{ fontSize: 11, color: 'var(--muted)' }}>
-                    Capítulo
-                    <select
-                      value={chapterValue}
-                      onChange={event => setSelectedChapters(previous => ({ ...previous, [book.slug]: Number(event.target.value) }))}
-                      style={{
-                        width: '100%', marginTop: 6, border: '1px solid var(--border)',
-                        background: 'var(--card)', color: 'var(--text)', borderRadius: 8,
-                        padding: '8px 10px'
-                      }}
-                    >
-                      {chapterOptions(book.slug).map(option => (
-                        <option key={option} value={option}>Capítulo {option}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       <div style={{
         height: 1, background: 'linear-gradient(90deg, transparent, var(--border), transparent)',
         margin: '18px 0'
@@ -486,7 +393,7 @@ function CategoryCard({ category, progress, active, onClick }) {
             <button
               key={book.slug}
               type="button"
-              onClick={() => navigate(`/bible?book=${book.slug}&chapter=1`)}
+              onClick={() => navigate(toBookChapterUrl(book.slug, 1))}
               style={{
                 border: '1px solid var(--border)',
                 borderRadius: 12,

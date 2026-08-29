@@ -18,7 +18,20 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao entrar');
+      const status = err.response?.status;
+      const message = err.response?.data?.message || '';
+
+      if (status === 401 && /e-mail ou senha inválidos|senha inválida|usuário não encontrado|user not found/i.test(message)) {
+        setError('Usuário não encontrado ou senha inválida.');
+      } else if (status === 404) {
+        setError('Usuário não encontrado.');
+      } else if (status === 401) {
+        setError('Senha inválida.');
+      } else if (!err.response) {
+        setError('Backend indisponível. Tente novamente em alguns instantes.');
+      } else {
+        setError(message || 'Erro ao entrar');
+      }
     } finally {
       setLoading(false);
     }
