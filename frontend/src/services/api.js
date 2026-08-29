@@ -1,11 +1,28 @@
 import axios from 'axios';
 
-const defaultBaseUrl = import.meta.env.DEV
-  ? 'http://localhost:3000/api'
-  : 'https://meucaminhoback.onrender.com/api';
+function resolveApiBaseUrl() {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/$/, '');
+  }
+
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+
+  if (import.meta.env.DEV) {
+    if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+      return `http://${currentHost}:3000/api`;
+    }
+    return 'http://localhost:3000/api';
+  }
+
+  if (currentHost && !['localhost', '127.0.0.1'].includes(currentHost)) {
+    return `https://${currentHost}/api`;
+  }
+
+  return 'https://meucaminhoback.onrender.com/api';
+}
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl
+  baseURL: resolveApiBaseUrl()
 });
 
 api.interceptors.request.use(config => {
