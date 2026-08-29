@@ -91,7 +91,7 @@ async function startServer() {
   await conectarDB();
   app.listen(PORT, () => {
     console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`📊 Health check: /health`);
     keepRenderAwake();
   });
 }

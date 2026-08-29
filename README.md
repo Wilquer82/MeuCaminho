@@ -116,7 +116,7 @@ cp .env.example .env
 npm run dev
 ```
 
-> API rodará em `http://localhost:3000`
+> API rodará em produção no Render: `https://meucaminhoback.onrender.com`
 
 ### 2. Frontend
 
@@ -126,7 +126,7 @@ npm install
 npm run dev
 ```
 
-> App rodará em `http://localhost:5173`
+> App rodará em produção (PWA instalável em mobile)
 
 ### 3. Variáveis de Ambiente (.env backend)
 

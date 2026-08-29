@@ -20,10 +20,7 @@ function resolveApiBaseUrl() {
   }
 
   if (import.meta.env.DEV) {
-    if (currentHost && !isLocalHost) {
-      return `http://${currentHost}:3000/api`;
-    }
-    return 'http://localhost:3000/api';
+    return productionApiUrl;
   }
 
   if (currentHost && !isLocalHost) {
