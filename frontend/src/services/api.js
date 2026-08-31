@@ -39,8 +39,23 @@ const api = axios.create({
   baseURL: resolveApiBaseUrl()
 });
 
+const getStoredToken = () => {
+  if (typeof window === 'undefined') return null;
+
+  const candidates = [
+    window.localStorage.getItem('token'),
+    window.sessionStorage.getItem('token'),
+    JSON.parse(window.localStorage.getItem('authSession') || 'null')?.token,
+    JSON.parse(window.sessionStorage.getItem('authSession') || 'null')?.token,
+    JSON.parse(window.localStorage.getItem('session') || 'null')?.token,
+    JSON.parse(window.sessionStorage.getItem('session') || 'null')?.token
+  ];
+
+  return candidates.find(Boolean) || null;
+};
+
 api.interceptors.request.use(config => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = getStoredToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
