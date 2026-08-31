@@ -43,12 +43,28 @@ export default function Profile() {
     }
   };
 
+  const categoryBadges = Object.entries(readingStats.categories || {})
+    .filter(([, stats]) => stats?.completed > 0)
+    .slice(0, 4)
+    .map(([category, stats]) => ({
+      icon: '📚',
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      unlocked: true,
+      detail: `${stats.completed}/${stats.total}`
+    }));
+
   const achievements = [
-    { icon: '🏆', name: '1ª Semana', unlocked: true },
-    { icon: '📖', name: 'Leitor Constante', unlocked: true },
-    { icon: '🎓', name: 'Teólogo Iniciante', unlocked: user.level >= 5 },
-    { icon: '🔥', name: 'Streak 30', unlocked: user.streak >= 30 },
-    { icon: '👑', name: 'Bíblia Completa', unlocked: false }
+    { icon: '🏆', name: '1ª Semana', unlocked: (user.streak || 0) >= 7, detail: `${user.streak || 0} dias` },
+    { icon: '📖', name: 'Leitor Constante', unlocked: (readingStats.totalChaptersRead || 0) >= 10, detail: `${readingStats.totalChaptersRead || 0} capítulos` },
+    { icon: '🎓', name: 'Teólogo Iniciante', unlocked: (user.level || 1) >= 5, detail: `Nível ${(user.level || 1)}` },
+    { icon: '🔥', name: 'Streak 30', unlocked: (user.streak || 0) >= 30, detail: `${user.streak || 0} dias` },
+    { icon: '📘', name: 'Gênesis', unlocked: (readingStats.totalChaptersRead || 0) >= 15, detail: 'Livro inicial' },
+    { icon: '📙', name: 'Salmos', unlocked: (readingStats.totalChaptersRead || 0) >= 25, detail: 'Poemas e louvor' },
+    { icon: '📗', name: 'João', unlocked: (readingStats.totalChaptersRead || 0) >= 35, detail: 'Evangelho central' },
+    { icon: '👑', name: 'Bíblia Completa', unlocked: false, detail: 'Em progresso' },
+    ...categoryBadges,
+    { icon: '🧭', name: 'Total de livros', unlocked: (readingStats.uniqueBooksRead || 0) >= 5, detail: `${readingStats.uniqueBooksRead || 0} livros` },
+    { icon: '📅', name: 'Dias totais', unlocked: (user.streak || 0) >= 3, detail: `${user.streak || 0} dias` }
   ];
 
   return (
@@ -125,34 +141,46 @@ export default function Profile() {
       {/* Conquistas */}
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>Conquistas</h3>
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         gap: 10, marginBottom: 20
       }}>
         {achievements.map((a, i) => (
           <div
-            key={i}
+            key={`${a.name}-${i}`}
             style={{
               textAlign: 'center',
-              opacity: a.unlocked ? 1 : .4
+              opacity: a.unlocked ? 1 : .4,
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '10px 8px'
             }}
           >
             <div style={{
-              width: 48, height: 48, borderRadius: 12,
+              width: 42, height: 42, borderRadius: 12,
               background: a.unlocked
                 ? 'linear-gradient(135deg, #fbbf24, #d97706)'
-                : 'var(--card)',
+                : 'var(--bg)',
               border: a.unlocked ? 'none' : '2px dashed var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 4px', fontSize: 22
+              margin: '0 auto 6px', fontSize: 18
             }}>
               {a.unlocked ? a.icon : '🔒'}
             </div>
             <p style={{
-              fontSize: 9, fontWeight: 600, margin: 0,
+              fontSize: 10, fontWeight: 700, margin: '0 0 4px',
               lineHeight: 1.2, color: a.unlocked ? 'var(--text)' : 'var(--muted)'
             }}>
               {a.name}
             </p>
+            {a.detail && (
+              <p style={{
+                fontSize: 9, margin: 0,
+                color: 'var(--muted)', lineHeight: 1.2
+              }}>
+                {a.detail}
+              </p>
+            )}
           </div>
         ))}
       </div>

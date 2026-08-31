@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function MissionSelectionModal({ onSelect, isOpen }) {
+export default function MissionSelectionModal({ onSelect, isOpen, onClose }) {
   const [selected, setSelected] = useState('monthly');
 
   if (!isOpen) return null;
@@ -61,9 +61,25 @@ export default function MissionSelectionModal({ onSelect, isOpen }) {
         padding: 24,
         maxWidth: 400,
         width: '100%',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+        position: 'relative'
       }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
+        <button
+          type="button"
+          onClick={() => onClose?.()}
+          aria-label="Fechar escolha de missão"
+          style={{
+            position: 'absolute',
+            top: 12, right: 12,
+            border: 'none', background: 'rgba(148, 163, 184, 0.15)',
+            color: 'var(--text)', borderRadius: '50%', width: 28, height: 28,
+            cursor: 'pointer', fontSize: 16, fontWeight: 700
+          }}
+        >
+          ✕
+        </button>
+
+        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, paddingRight: 28 }}>
           Escolha sua Missão
         </h2>
         <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>

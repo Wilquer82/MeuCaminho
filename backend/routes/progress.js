@@ -57,13 +57,19 @@ router.get('/category/:category', auth, async (req, res) => {
 router.get('/summary', auth, async (req, res) => {
   try {
     const readings = await BibleReading.find({ user: req.user._id }).select('book -_id');
+    const uniqueBooks = [...new Set(readings.map(reading => reading.book))];
     const categories = Object.fromEntries(Object.entries(categoryBooks).map(([category, bookIds]) => {
       const completed = readings.filter(reading => bookIds.includes(reading.book)).length;
       const total = bookIds.reduce((sum, book) => sum + chapterTotals[book], 0);
       return [category, { completed, total, percentage: total ? Math.round((completed / total) * 100) : 0 }];
     }));
 
-    res.json({ totalChaptersRead: readings.length, readingXp: readings.length * 10, categories });
+    res.json({
+      totalChaptersRead: readings.length,
+      uniqueBooksRead: uniqueBooks.length,
+      readingXp: readings.length * 10,
+      categories
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

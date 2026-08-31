@@ -28,15 +28,20 @@ export default function Home() {
     window.addEventListener('focus', refreshLesson);
     document.addEventListener('visibilitychange', refreshLesson);
 
-    if (user?.firstAccess) {
-      setShowMissionModal(true);
-    }
-
     return () => {
       window.removeEventListener('focus', refreshLesson);
       document.removeEventListener('visibilitychange', refreshLesson);
     };
   }, [user?._id]);
+
+  useEffect(() => {
+    if (user?.firstAccess) {
+      setShowMissionModal(true);
+      return;
+    }
+
+    setShowMissionModal(false);
+  }, [user?._id, user?.firstAccess]);
 
   const loadTodayLesson = async () => {
     try {
@@ -82,6 +87,22 @@ export default function Home() {
     }
   };
 
+  const handleCloseMissionModal = async () => {
+    if (!user?.firstAccess) {
+      setShowMissionModal(false);
+      return;
+    }
+
+    try {
+      await api.patch('/auth/me', { firstAccess: false });
+      updateUser({ firstAccess: false });
+    } catch (err) {
+      console.error('Erro ao fechar modal de missão:', err);
+    } finally {
+      setShowMissionModal(false);
+    }
+  };
+
   if (!user) return null;
 
   const firstName = user.name.split(' ')[0];
@@ -90,9 +111,10 @@ export default function Home() {
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
 
       {/* Modal de seleção de missão (primeira visita) */}
-      <MissionSelectionModal 
+      <MissionSelectionModal
         isOpen={showMissionModal}
         onSelect={handleMissionSelection}
+        onClose={handleCloseMissionModal}
       />
 
       {/* Saudação + Streak */}

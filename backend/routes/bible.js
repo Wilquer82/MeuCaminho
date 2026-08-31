@@ -153,6 +153,22 @@ router.get('/:book/:chapter', auth, async (req, res) => {
   }
 });
 
+const applyDailyStreak = (user) => {
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const lastActiveKey = user.lastActive ? new Date(user.lastActive).toISOString().slice(0, 10) : null;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  if (lastActiveKey === yesterdayKey) {
+    user.streak = (user.streak || 0) + 1;
+  } else if (lastActiveKey !== todayKey) {
+    user.streak = 1;
+  }
+
+  user.lastActive = new Date();
+};
+
 router.post('/:book/:chapter/complete', auth, async (req, res) => {
   const book = books.find(item => item.id === req.params.book);
   const chapter = Number(req.params.chapter);
@@ -168,15 +184,7 @@ router.post('/:book/:chapter/complete', auth, async (req, res) => {
     if (!existing) {
       await BibleReading.create({ user: user._id, book: book.id, chapter });
       user.xp += 10;
-
-      const today = new Date().toDateString();
-      const lastActive = user.lastActive ? new Date(user.lastActive).toDateString() : null;
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (lastActive === yesterday.toDateString()) user.streak++;
-      else if (lastActive !== today) user.streak = 1;
-      user.lastActive = new Date();
+      applyDailyStreak(user);
       await user.save();
     }
 
