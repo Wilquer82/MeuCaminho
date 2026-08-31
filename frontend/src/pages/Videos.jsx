@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const videos = [
   {
@@ -137,10 +139,54 @@ const videos = [
 ];
 
 export default function Videos() {
+  const { user, updateUser } = useAuth();
   const [filter, setFilter] = useState('all');
   const [bookFilter, setBookFilter] = useState('all');
+  const [watchedVideos, setWatchedVideos] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('watchedVideos') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [message, setMessage] = useState('');
+  const [completingVideo, setCompletingVideo] = useState(false);
 
-  const contentFilters = [
+  const openYouTube = (youtubeId) => {
+    const url = `https://www.youtube.com/watch?v=${youtubeId}`;
+    
+    // Adiciona o vídeo à lista de assistidos se não estiver lá
+    if (!watchedVideos.includes(youtubeId)) {
+      const newWatched = [...watchedVideos, youtubeId];
+      setWatchedVideos(newWatched);
+      localStorage.setItem('watchedVideos', JSON.stringify(newWatched));
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  async function completeVideoWatching() {
+    if (!watchedVideos.length) return;
+    setCompletingVideo(true);
+    setMessage('');
+
+    try {
+      const xpReward = Math.min(watchedVideos.length * 5, 50); // Máx 50 XP
+      const response = await api.post('/progress/videos-complete', {
+        videosWatched: watchedVideos.length,
+        xpReward
+      });
+
+      updateUser({ xp: response.data.newXp });
+      setMessage(`+${xpReward} XP! ${watchedVideos.length} vídeo(s) assistido(s).`);
+      setWatchedVideos([]);
+      localStorage.setItem('watchedVideos', JSON.stringify([]));
+    } catch {
+      setMessage('Erro ao registrar vídeos. Tente novamente.');
+    } finally {
+      setCompletingVideo(false);
+    }
+  }
     { id: 'all', label: 'Todos' },
     { id: 'AT', label: 'Antigo Testamento' },
     { id: 'NT', label: 'Novo Testamento' },
@@ -230,6 +276,69 @@ export default function Videos() {
           ))}
         </div>
       </div>
+
+      {/* Status de vídeos assistidos */}
+      {watchedVideos.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05))',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: 14,
+          padding: 14,
+          marginBottom: 14
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <span style={{ fontSize: 20 }}>▶️</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, margin: '0 0 2px', color: 'var(--text)' }}>
+                {watchedVideos.length} vídeo{watchedVideos.length > 1 ? 's' : ''} assistido{watchedVideos.length > 1 ? 's' : ''}
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', margin: 0 }}>
+                Clique em "Confirmar" para ganhar XP por cada vídeo
+              </p>
+            </div>
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.2)',
+              borderRadius: 8,
+              padding: '4px 10px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#dc2626'
+            }}>
+              +{Math.min(watchedVideos.length * 5, 50)} XP
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={completeVideoWatching}
+            disabled={completingVideo}
+            style={{
+              width: '100%',
+              padding: 10,
+              borderRadius: 10,
+              border: 'none',
+              background: '#ef4444',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              opacity: completingVideo ? 0.6 : 1
+            }}
+          >
+            {completingVideo ? 'Registrando...' : 'Confirmar vídeos assistidos'}
+          </button>
+          {message && (
+            <p style={{
+              marginTop: 8,
+              fontSize: 11,
+              color: message.includes('+') ? 'var(--success)' : 'var(--danger)',
+              textAlign: 'center',
+              fontWeight: 600
+            }}>
+              {message}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Vídeo em destaque */}
       {featured && (

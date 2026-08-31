@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const categories = [
@@ -10,9 +11,20 @@ const categories = [
 ];
 
 export default function Curiosities() {
+  const { user, updateUser } = useAuth();
   const [items, setItems] = useState([]);
   const [activeCat, setActiveCat] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [completingReading, setCompletingReading] = useState(false);
+  const [completedReadings, setCompletedReadings] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('completedCuriosities') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     loadCuriosities();
@@ -30,6 +42,35 @@ export default function Curiosities() {
       setLoading(false);
     }
   };
+
+  const selectedItem = items.find(item => item.id === selectedItemId) || items[0];
+  const isReadingCompleted = completedReadings.includes(selectedItemId);
+
+  async function completeReading() {
+    if (!selectedItem || isReadingCompleted) return;
+    setCompletingReading(true);
+    setMessage('');
+
+    try {
+      const xpReward = 15;
+      const response = await api.post('/progress/curiosity-complete', {
+        curiosityId: selectedItem.id,
+        title: selectedItem.title,
+        xpReward
+      });
+
+      const newCompleted = [...completedReadings, selectedItemId];
+      setCompletedReadings(newCompleted);
+      localStorage.setItem('completedCuriosities', JSON.stringify(newCompleted));
+
+      updateUser({ xp: response.data.newXp });
+      setMessage(`+${xpReward} XP! Curiosidade marcada como lida.`);
+    } catch {
+      setMessage('Erro ao registrar leitura. Tente novamente.');
+    } finally {
+      setCompletingReading(false);
+    }
+  }
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
@@ -62,11 +103,14 @@ export default function Curiosities() {
 
       {/* Destaque */}
       {items[0] && (
-        <div className="card-tap" style={{
-          background: 'linear-gradient(135deg, var(--premium), #5b21b6)',
-          borderRadius: 16, padding: 16, marginBottom: 12, color: '#fff',
-          cursor: 'pointer'
-        }}>
+        <div 
+          className="card-tap" 
+          onClick={() => setSelectedItemId(items[0].id)}
+          style={{
+            background: 'linear-gradient(135deg, var(--premium), #5b21b6)',
+            borderRadius: 16, padding: 16, marginBottom: 12, color: '#fff',
+            cursor: 'pointer'
+          }}>
           <span style={{
             fontSize: 10, fontWeight: 700, background: 'rgba(255,255,255,.2)',
             padding: '3px 10px', borderRadius: 10
@@ -80,6 +124,94 @@ export default function Curiosities() {
         </div>
       )}
 
+      {/* View de leitura detalhada */}
+      {selectedItem && (
+        <div style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderRadius: 16,
+          padding: 16,
+          marginBottom: 14
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <div>
+              <p style={{
+                fontSize: 11, fontWeight: 700, color: getCategoryColor(selectedItem.category),
+                margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '.05em'
+              }}>
+                {getCategoryIcon(selectedItem.category)} {selectedItem.category}
+              </p>
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+                {selectedItem.title}
+              </h2>
+            </div>
+            {isReadingCompleted && (
+              <span style={{
+                fontSize: 18, fontWeight: 700, color: 'var(--success)',
+                background: 'rgba(16, 185, 129, 0.1)',
+                padding: '4px 8px',
+                borderRadius: 6
+              }}>✓</span>
+            )}
+          </div>
+
+          <div style={{
+            fontSize: 14,
+            lineHeight: 1.7,
+            color: 'var(--text)',
+            marginBottom: 14
+          }}>
+            {Array.isArray(selectedItem.body) ? (
+              selectedItem.body.map((paragraph, i) => (
+                <p key={i} style={{ margin: i > 0 ? '12px 0 0' : 0 }}>
+                  {paragraph}
+                </p>
+              ))
+            ) : (
+              <p>{selectedItem.content || selectedItem.summary}</p>
+            )}
+          </div>
+
+          <p style={{
+            fontSize: 11, color: 'var(--muted)', margin: '0 0 12px'
+          }}>
+            Fonte: {selectedItem.source || 'Got Questions'}
+          </p>
+
+          <button
+            type="button"
+            onClick={completeReading}
+            disabled={isReadingCompleted || completingReading}
+            style={{
+              width: '100%',
+              padding: 12,
+              borderRadius: 10,
+              border: 'none',
+              background: isReadingCompleted ? 'var(--success)' : 'var(--accent)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: isReadingCompleted ? 'default' : 'pointer',
+              opacity: completingReading ? 0.6 : 1
+            }}
+          >
+            {completingReading ? 'Registrando...' : isReadingCompleted ? '✓ Curiosidade lida • +15 XP' : 'Marcar como lido (+15 XP)'}
+          </button>
+
+          {message && (
+            <p style={{
+              marginTop: 10,
+              fontSize: 12,
+              color: message.includes('+') ? 'var(--success)' : 'var(--danger)',
+              textAlign: 'center',
+              fontWeight: 600
+            }}>
+              {message}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Lista */}
       {loading ? (
         <p style={{ textAlign: 'center', color: 'var(--muted)', padding: 20 }}>Carregando...</p>
@@ -87,10 +219,12 @@ export default function Curiosities() {
         <div
           key={i}
           className="card-tap"
+          onClick={() => setSelectedItemId(item.id)}
           style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: 14, padding: 14, marginBottom: 10,
-            display: 'flex', gap: 10, cursor: 'pointer'
+            display: 'flex', gap: 10, cursor: 'pointer',
+            opacity: completedReadings.includes(item.id) ? 0.7 : 1
           }}
         >
           <div style={{
@@ -109,8 +243,11 @@ export default function Curiosities() {
               fontSize: 11, color: 'var(--muted)', margin: 0,
               lineHeight: 1.5, overflow: 'hidden',
               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'
-            }}>{item.content}</p>
+            }}>{item.content || item.summary}</p>
           </div>
+          {completedReadings.includes(item.id) && (
+            <span style={{ color: 'var(--success)', fontSize: 18, marginLeft: 8 }}>✓</span>
+          )}
         </div>
       ))}
     </div>
