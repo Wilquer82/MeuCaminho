@@ -288,28 +288,6 @@ export default function Bible() {
     saveFavorites(nextFavorites);
   }
 
-  function saveCurrentChapterOffline() {
-    if (!reading) return;
-    const cache = getCachedChapterCache();
-    const chapterKey = `${translation}:${bookId}:${chapter}`;
-    cache[chapterKey] = {
-      ...reading,
-      storedAt: new Date().toISOString()
-    };
-    setCachedChapterCache(cache);
-    setOfflineSaved(true);
-    setMessage('Capítulo salvo para leitura offline.');
-  }
-
-  function removeCurrentChapterOffline() {
-    const cache = getCachedChapterCache();
-    const chapterKey = `${translation}:${bookId}:${chapter}`;
-    delete cache[chapterKey];
-    setCachedChapterCache(cache);
-    setOfflineSaved(false);
-    setMessage('Capítulo removido do cache offline.');
-  }
-
   async function saveFullTranslationOffline() {
     if (!books.length || savingVersion) return;
 
@@ -385,28 +363,11 @@ export default function Bible() {
             );
           })}
         </select>
-        <div style={{ display: 'flex', gap: 8, gridColumn: '1 / -1' }}>
-          <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={{ ...fieldStyle, flex: 1 }}>
-            {Array.from({ length: selectedBook?.chapters || 1 }, (_, index) => (
-              <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={goToNextChapter}
-            style={{
-              ...buttonStyle,
-              marginTop: 0,
-              width: 'auto',
-              minWidth: 120,
-              padding: '12px 16px',
-              background: 'var(--accent2)',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Próximo capítulo
-          </button>
-        </div>
+        <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
+          {Array.from({ length: selectedBook?.chapters || 1 }, (_, index) => (
+            <option key={index + 1} value={index + 1}>Cap. {index + 1}</option>
+          ))}
+        </select>
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -525,8 +486,8 @@ export default function Bible() {
             <button type="button" onClick={completeReading} disabled={reading.completed} style={{ ...buttonStyle, flex: 1, opacity: reading.completed ? .6 : 1 }}>
               {reading.completed ? 'Leitura concluída' : 'Concluir leitura e ganhar XP'}
             </button>
-            <button type="button" onClick={offlineSaved ? removeCurrentChapterOffline : saveCurrentChapterOffline} style={{ ...buttonStyle, flex: 1, background: offlineSaved ? '#6b7280' : '#1d7b38' }}>
-              {offlineSaved ? 'Remover offline' : 'Salvar offline'}
+            <button type="button" onClick={goToNextChapter} style={{ ...buttonStyle, flex: 1, background: 'var(--accent2)' }}>
+              Próximo capítulo
             </button>
           </div>
         </>
