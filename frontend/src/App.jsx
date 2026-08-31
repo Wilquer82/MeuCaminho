@@ -48,6 +48,7 @@ export default function App() {
 
   return (
     <div style={{
+      width: '100%',
       maxWidth: 480,
       margin: '0 auto',
       minHeight: '100vh',

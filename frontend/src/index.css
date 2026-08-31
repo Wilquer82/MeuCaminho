@@ -41,6 +41,7 @@ html {
 }
 
 html, body, #root {
+  width: 100%;
   min-height: 100%;
   height: 100%;
 }
@@ -53,6 +54,7 @@ body {
   overscroll-behavior: none;
   -webkit-touch-callout: none;
   user-select: none;
+  min-height: 100vh;
 }
 
 body, input, textarea, select {
@@ -83,7 +85,19 @@ input, textarea, select {
 
 #root {
   min-height: 100vh;
+  width: 100%;
   background: transparent;
+}
+
+@media (max-width: 480px) {
+  body {
+    background: var(--bg);
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* ===== Animações ===== */

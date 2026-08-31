@@ -1,177 +1,173 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
-// ✅ IMPORTANTE: Mantive a mesma forma de importação do auth que você usa no auth.js
+
 const { auth } = require('../middleware/auth');
-const Achievement = require('../models/Achievement');
 const User = require('../models/User');
 
 
-// GET /api/achievements - Lista todas as conquistas
-router.get('/', auth, async (req, res) => {
+const sanitizeUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  plan: user.plan,
+  subscriptionId: user.subscriptionId,
+  subscriptionExpires: user.subscriptionExpires,
+  dailyLessonsCompleted: user.dailyLessonsCompleted,
+  streakFreezes: user.streakFreezes,
+  xp: user.xp,
+  level: user.level,
+  streak: user.streak,
+  lastActive: user.lastActive,
+  activeCategory: user.activeCategory,
+  selectedMissionPlan: user.selectedMissionPlan,
+  unlockedAchievements: user.unlockedAchievements || [],
+  lessonsCompleted: user.lessonsCompleted || [],
+  quizScore: user.quizScore || 0,
+  firstAccess: user.firstAccess,
+  friends: user.friends || [],
+  duoPartner: user.duoPartner || null,
+  createdAt: user.createdAt
+});
+
+
+const createToken = (user) => {
+  return jwt.sign(
+    { _id: user._id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
+
+// POST /api/auth/register - Registrar um novo usuário
+router.post('/register', async (req, res) => {
   try {
-    const achievements = await Achievement.find().sort({ tier: 1, createdAt: -1 });
-    const user = await User.findById(req.user._id);
-    const userAchievements = user.unlockedAchievements || [];
-    
-    const enriched = achievements.map(ach => ({
-      ...ach.toObject(),
-      unlocked: userAchievements.includes(ach._id.toString())
-    }));
-    
-    res.json(enriched);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const { name, email, password } = req.body || {};
+    const normalizedName = String(name || '').trim();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    if (!normalizedName || !normalizedEmail || !String(password || '').trim()) {
+      return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios.' });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Este e-mail já está cadastrado.' });
+    }
+
+    const user = await User.create({
+      name: normalizedName,
+      email: normalizedEmail,
+      password: String(password)
+    });
+
+    const token = createToken(user);
+    res.status(201).json({
+      token,
+      user: sanitizeUser(user)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao cadastrar usuário.' });
   }
 });
 
 
-// GET /api/achievements/me - Progresso do usuário
+// POST /api/auth/login - Fazer login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    if (!normalizedEmail || !String(password || '').trim()) {
+      return res.status(400).json({ message: 'Informe e-mail e senha para continuar.' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(401).json({ message: 'E-mail ou senha inválidos.' });
+    }
+
+    const isMatch = await user.matchPassword(String(password));
+    if (!isMatch) {
+      return res.status(401).json({ message: 'E-mail ou senha inválidos.' });
+    }
+
+    const token = createToken(user);
+    res.json({
+      token,
+      user: sanitizeUser(user)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao entrar.' });
+  }
+});
+
+
+// GET /api/auth/me - Obter dados do usuário logado
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const achievements = await Achievement.find();
-    
-    const progress = achievements.map(ach => {
-      const unlocked = user.unlockedAchievements?.includes(ach._id.toString());
-      
-      let userValue = 0;
-      switch (ach.criterionType) {
-        case 'lessons':
-          userValue = user.lessonsCompleted?.length || 0;
-          break;
-        case 'streak':
-          userValue = user.streak || 0;
-          break;
-        case 'level':
-          userValue = Math.floor((user.xp || 0) / 2000) + 1;
-          break;
-        case 'xp_total':
-          userValue = user.xp || 0;
-          break;
-        case 'quiz_score':
-          userValue = user.quizScore || 0;
-          break;
-        default:
-          userValue = 0;
-      }
-      
-      return {
-        id: ach._id,
-        title: ach.title,
-        description: ach.description,
-        icon: ach.icon,
-        category: ach.category,
-        tier: ach.tier,
-        criterionType: ach.criterionType,
-        criterionValue: ach.criterionValue,
-        userValue,
-        unlocked,
-        progress: Math.min(100, Math.round((userValue / ach.criterionValue) * 100))
-      };
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    res.json({
+      user: sanitizeUser(user)
     });
-    
-    res.json(progress);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao carregar usuário.' });
   }
 });
 
 
-// POST /api/achievements/seed - Criar conquistas padrão (admin)
-router.post('/seed', auth, async (req, res) => {
+// PATCH /api/auth/me - Atualizar dados do usuário
+router.patch('/me', auth, async (req, res) => {
   try {
-    const existingCount = await Achievement.countDocuments();
-    if (existingCount > 0) {
-      return res.status(400).json({ message: 'Conquistas já existem' });
-    }
-    
-    const defaultAchievements = [
-      // Dedicação
-      { 
-        title: '1ª Semana', 
-        description: 'Complete 7 lições',
-        icon: '🎯',
-        category: 'dedicacao',
-        type: 'milestone',
-        tier: 'bronze',
-        criterionType: 'lessons',
-        criterionValue: 7,
-        xpReward: 50
-      },
-      { 
-        title: 'Leitor Constante', 
-        description: 'Mantenha streak de 14 dias',
-        icon: '📖',
-        category: 'dedicacao',
-        type: 'streak',
-        tier: 'prata',
-        criterionType: 'streak',
-        criterionValue: 14,
-        xpReward: 100
-      },
-      { 
-        title: 'Queimando Fogo', 
-        description: 'Streak de 30 dias',
-        icon: '🔥',
-        category: 'dedicacao',
-        type: 'streak',
-        tier: 'ouro',
-        criterionType: 'streak',
-        criterionValue: 30,
-        xpReward: 200
-      },
-      // Estudo
-      { 
-        title: 'Aprendiz', 
-        description: 'Atinja nível 3',
-        icon: '📚',
-        category: 'estudo',
-        type: 'milestone',
-        tier: 'bronze',
-        criterionType: 'level',
-        criterionValue: 3,
-        xpReward: 75
-      },
-      { 
-        title: 'Teólogo Iniciante', 
-        description: 'Atinja nível 5',
-        icon: '🎓',
-        category: 'estudo',
-        type: 'milestone',
-        tier: 'prata',
-        criterionType: 'level',
-        criterionValue: 5,
-        xpReward: 150
-      },
-      // XP
-      { 
-        title: 'Coletor de Sabedoria', 
-        description: 'Acumule 1000 XP',
-        icon: '💎',
-        category: 'estudo',
-        type: 'challenge',
-        tier: 'bronze',
-        criterionType: 'xp_total',
-        criterionValue: 1000,
-        xpReward: 100
-      },
-      { 
-        title: 'Mestre das Escrituras', 
-        description: 'Acumule 5000 XP',
-        icon: '👑',
-        category: 'estudo',
-        type: 'challenge',
-        tier: 'diamante',
-        criterionType: 'xp_total',
-        criterionValue: 5000,
-        xpReward: 500
-      }
+    const allowedUpdates = [
+      'plan',
+      'subscriptionId',
+      'subscriptionExpires',
+      'dailyLessonsCompleted',
+      'streakFreezes',
+      'xp',
+      'level',
+      'streak',
+      'lastActive',
+      'activeCategory',
+      'selectedMissionPlan',
+      'firstAccess',
+      'quizScore',
+      'friends',
+      'duoPartner'
     ];
-    
-    await Achievement.insertMany(defaultAchievements);
-    res.json({ message: 'Conquistas criadas com sucesso', count: defaultAchievements.length });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    const updates = {};
+    Object.keys(req.body || {}).forEach((key) => {
+      if (allowedUpdates.includes(key)) {
+        updates[key] = req.body[key];
+      }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'Nenhum campo válido para atualizar.' });
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    res.json({
+      user: sanitizeUser(user),
+      message: 'Dados do usuário atualizados.'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao atualizar usuário.' });
   }
 });
 

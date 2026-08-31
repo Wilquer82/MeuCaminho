@@ -91,7 +91,7 @@ const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   await conectarDB();
-  app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 API Meu Caminho de Luz rodando na porta ${PORT}`);
     console.log(`📊 Health check: /health`);
     keepRenderAwake();

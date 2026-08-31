@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const productionApiUrl = 'https://meucaminhoback.onrender.com/api';
+const localApiUrl = 'http://localhost:3000/api';
 
 function resolveApiBaseUrl() {
   if (import.meta.env.VITE_API_URL) {
@@ -19,6 +20,10 @@ function resolveApiBaseUrl() {
     return productionApiUrl;
   }
 
+  if (import.meta.env.DEV && isLocalHost) {
+    return localApiUrl;
+  }
+
   if (import.meta.env.DEV) {
     return productionApiUrl;
   }
@@ -27,7 +32,7 @@ function resolveApiBaseUrl() {
     return `https://${currentHost}/api`;
   }
 
-  return productionApiUrl;
+  return localApiUrl;
 }
 
 const api = axios.create({
@@ -47,6 +52,7 @@ api.interceptors.response.use(
   error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('authSession');
       window.location.href = '/login';
     }
     return Promise.reject(error);
