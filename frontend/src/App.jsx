@@ -175,12 +175,7 @@ export default function App() {
 
       {user && <BottomNav />}
 
-      <PaywallModal
-        isOpen={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        completedToday={paywallData.completedToday}
-        dailyLimit={paywallData.dailyLimit}
-      />
+      {/* PaywallModal was removed for beta phase */}
 
       {user && <InstallPwaPrompt />}
     </div>

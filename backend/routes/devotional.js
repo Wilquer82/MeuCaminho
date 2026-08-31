@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
+const { authRateLimiter } = require('../middleware/rateLimit');
 const Devotional = require('../models/Devotional');
 const User = require('../models/User');
 
@@ -81,7 +82,7 @@ router.get('/today', auth, async (req, res) => {
 });
 
 // POST /api/devotional/:id/complete — Marcar como lido
-router.post('/:id/complete', auth, async (req, res) => {
+router.post('/:id/complete', auth, authRateLimiter, async (req, res) => {
   try {
     const devotional = await Devotional.findById(req.params.id);
     if (!devotional) {

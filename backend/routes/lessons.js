@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const { checkDailyLimit } = require('../middleware/rateLimit');
+const { checkDailyLimit, authRateLimiter } = require('../middleware/rateLimit');
 const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 
@@ -77,7 +77,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // POST /api/lessons/:id/complete — Completar lição
-router.post('/:id/complete', auth, checkDailyLimit, async (req, res) => {
+router.post('/:id/complete', auth, authRateLimiter, checkDailyLimit, async (req, res) => {
   try {
     const lesson = await Lesson.findById(req.params.id);
     const user = await User.findById(req.user._id);

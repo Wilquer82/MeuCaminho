@@ -48,6 +48,13 @@ const userSchema = new mongoose.Schema({
   lessonsCompleted: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
   quizScore: { type: Number, default: 0 },
   firstAccess: { type: Boolean, default: true },
+  
+  // Track last read chapter for each book
+  bookProgress: [{
+    bookSlug: String,
+    chapter: Number,
+    lastRead: { type: Date, default: Date.now }
+  }],
 
   // === SOCIAL ===
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

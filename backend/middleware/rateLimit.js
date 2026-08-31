@@ -9,20 +9,7 @@ const checkDailyLimit = async (req, res, next) => {
       return next(); // PREMIUM: sem limites
     }
 
-    if (!user.canStartLesson()) {
-      return res.status(402).json({
-        success: false,
-        message: 'Limite diário atingido!',
-        code: 'DAILY_LIMIT_REACHED',
-        data: {
-          dailyLimit: user.getDailyLimit(),
-          completedToday: user.dailyLessonsCompleted.count,
-          remaining: 0,
-          upgradeUrl: '/api/subscription/checkout'
-        }
-      });
-    }
-
+    // BETA TESTE: Sem limite de lições diárias, apenas contabilizar.
     req.incrementLesson = () => user.incrementDailyLessons();
     next();
 
@@ -31,4 +18,33 @@ const checkDailyLimit = async (req, res, next) => {
   }
 };
 
-module.exports = { checkDailyLimit };
+const rateLimitMap = new Map();
+
+// Simple in-memory rate limiter for auth/quiz routes
+const authRateLimiter = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute
+  const maxRequests = 30;
+
+  if (!rateLimitMap.has(ip)) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return next();
+  }
+
+  const record = rateLimitMap.get(ip);
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + windowMs;
+    return next();
+  }
+
+  record.count++;
+  if (record.count > maxRequests) {
+    return res.status(429).json({ message: 'Muitas requisições, tente novamente mais tarde.' });
+  }
+
+  next();
+};
+
+module.exports = { checkDailyLimit, authRateLimiter };

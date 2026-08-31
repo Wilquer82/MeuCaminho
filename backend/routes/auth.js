@@ -25,6 +25,7 @@ const sanitizeUser = (user) => ({
   lessonsCompleted: user.lessonsCompleted || [],
   quizScore: user.quizScore || 0,
   firstAccess: user.firstAccess,
+  bookProgress: user.bookProgress || [],
   friends: user.friends || [],
   duoPartner: user.duoPartner || null,
   createdAt: user.createdAt

@@ -156,6 +156,19 @@ router.get('/:book/:chapter', auth, async (req, res) => {
     const { data, meta } = await response.json();
     const reading = await BibleReading.exists({ user: req.user._id, book: book.id, chapter });
 
+    // Update book progress
+    const user = await User.findById(req.user._id);
+    if (user) {
+      const progressIndex = user.bookProgress.findIndex(p => p.bookSlug === book.id);
+      if (progressIndex > -1) {
+        user.bookProgress[progressIndex].chapter = chapter;
+        user.bookProgress[progressIndex].lastRead = new Date();
+      } else {
+        user.bookProgress.push({ bookSlug: book.id, chapter, lastRead: new Date() });
+      }
+      await user.save();
+    }
+
     res.json({
       book: book.name,
       bookId: book.id,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const bookChapterMap = {
@@ -165,12 +166,19 @@ const categories = [
 export default function Categories() {
   const [active, setActive] = useState('pentateuco');
   const [progress, setProgress] = useState({});
+  const [bookProgress, setBookProgress] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get('/progress/summary')
-      .then(({ data }) => setProgress(data.categories || {}))
-      .catch(() => setProgress({}));
+      .then(({ data }) => {
+        setProgress(data.categories || {});
+        setBookProgress(data.bookProgress || []);
+      })
+      .catch(() => {
+        setProgress({});
+        setBookProgress([]);
+      });
 
     setActive('pentateuco');
   }, []);
@@ -184,8 +192,20 @@ export default function Categories() {
     return `/bible?book=${normalizedSlug}&chapter=${chapter}`;
   };
 
+  const { user } = useAuth(); // Fallback if API hasn't loaded
+
   const openBookDirectly = (bookSlug) => {
-    navigate(toBookChapterUrl(bookSlug, 1));
+    let chapter = 1;
+    
+    // First try the local state from /summary, then fallback to user object
+    const savedProgress = bookProgress.find(p => p.bookSlug === bookSlug) 
+      || (user && user.bookProgress && user.bookProgress.find(p => p.bookSlug === bookSlug));
+      
+    if (savedProgress) {
+      chapter = savedProgress.chapter;
+    }
+    
+    navigate(toBookChapterUrl(bookSlug, chapter));
   };
 
   return (
@@ -293,6 +313,7 @@ export default function Categories() {
           progress={progress[cat.id]?.percentage ?? 0}
           active={active === cat.id}
           onClick={() => handleCategoryClick(cat)}
+          onBookClick={openBookDirectly}
         />
       ))}
 
@@ -308,6 +329,7 @@ export default function Categories() {
           progress={progress[cat.id]?.percentage ?? 0}
           active={active === cat.id}
           onClick={() => handleCategoryClick(cat)}
+          onBookClick={openBookDirectly}
         />
       ))}
 
@@ -351,7 +373,7 @@ export default function Categories() {
   );
 }
 
-function CategoryCard({ category, progress, active, onClick }) {
+function CategoryCard({ category, progress, active, onClick, onBookClick }) {
   const navigate = useNavigate();
 
   return (
@@ -408,7 +430,7 @@ function CategoryCard({ category, progress, active, onClick }) {
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                openBookDirectly(book.slug);
+                onBookClick(book.slug);
               }}
               style={{
                 border: '1px solid var(--border)',

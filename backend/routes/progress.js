@@ -64,11 +64,14 @@ router.get('/summary', auth, async (req, res) => {
       return [category, { completed, total, percentage: total ? Math.round((completed / total) * 100) : 0 }];
     }));
 
+    const user = await require('../models/User').findById(req.user._id).select('bookProgress');
+
     res.json({
       totalChaptersRead: readings.length,
       uniqueBooksRead: uniqueBooks.length,
       readingXp: readings.length * 10,
-      categories
+      categories,
+      bookProgress: user?.bookProgress || []
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

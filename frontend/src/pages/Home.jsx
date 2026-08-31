@@ -8,6 +8,7 @@ import StreakCounter from '../components/Home/StreakCounter';
 import DailyLessonCard from '../components/Home/DailyLessonCard';
 import DailyMissionBoard from '../components/Home/DailyMissionBoard';
 import MissionSelectionModal from '../components/UI/MissionSelectionModal';
+import DailyReminder from '../components/Home/DailyReminder';
 
 export default function Home() {
   const { user, updateUser } = useAuth();
@@ -106,6 +107,9 @@ export default function Home() {
   if (!user) return null;
 
   const firstName = user.name.split(' ')[0];
+  
+  const hasCompletedDaily = user.dailyLessonsCompleted?.count > 0 
+    && new Date(user.dailyLessonsCompleted.date).toDateString() === new Date().toDateString();
 
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
@@ -134,6 +138,9 @@ export default function Home() {
 
       {/* Quadro de Missão Diária */}
       <DailyMissionBoard />
+
+      {/* Alerta de Fim de Dia */}
+      <DailyReminder hasCompletedDaily={hasCompletedDaily} />
 
       {/* Lição de hoje */}
       <div style={{ marginBottom: 14 }}>
