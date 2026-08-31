@@ -187,6 +187,8 @@ export default function Videos() {
       setCompletingVideo(false);
     }
   }
+
+  const contentFilters = [
     { id: 'all', label: 'Todos' },
     { id: 'AT', label: 'Antigo Testamento' },
     { id: 'NT', label: 'Novo Testamento' },
@@ -205,11 +207,6 @@ export default function Videos() {
     { id: 'Romanos', label: 'Romanos' },
     { id: 'Apocalipse', label: 'Apocalipse' }
   ];
-
-  const openYouTube = (youtubeId) => {
-    const url = `https://www.youtube.com/watch?v=${youtubeId}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
   const filtered = useMemo(() => {
     return videos.filter(video => {

@@ -122,6 +122,17 @@ export default function Profile() {
     }
   };
 
+  const removeSavedReading = (readingKey) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('meucaminho_bible_favorites') || '[]');
+      const next = stored.filter(item => item.key !== readingKey);
+      localStorage.setItem('meucaminho_bible_favorites', JSON.stringify(next));
+      setSavedReadings(previous => previous.filter(item => item.key !== readingKey));
+    } catch {
+      setSavedReadings(previous => previous.filter(item => item.key !== readingKey));
+    }
+  };
+
   if (!user) return null;
 
   const handleLogout = () => {
@@ -244,26 +255,51 @@ export default function Profile() {
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {savedReadings.map(item => (
-              <Link
+              <div
                 key={item.key}
-                to={`/bible?book=${item.bookId}&chapter=${item.chapter}`}
                 style={{
-                  display: 'block',
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'stretch',
                   background: 'var(--bg)',
                   border: '1px solid var(--border)',
                   borderRadius: 10,
-                  padding: '10px 12px',
-                  textDecoration: 'none',
-                  color: 'var(--text)'
+                  overflow: 'hidden'
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
-                  {item.bookName} {item.chapter}:{item.verse}
-                </div>
-                <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>
-                  {item.text.length > 110 ? `${item.text.slice(0, 110)}...` : item.text}
-                </div>
-              </Link>
+                <Link
+                  to={`/bible?book=${item.bookId}&chapter=${item.chapter}`}
+                  style={{
+                    display: 'block',
+                    flex: 1,
+                    padding: '10px 12px',
+                    textDecoration: 'none',
+                    color: 'var(--text)'
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
+                    {item.bookName} {item.chapter}:{item.verse}
+                  </div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>
+                    {item.text.length > 110 ? `${item.text.slice(0, 110)}...` : item.text}
+                  </div>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => removeSavedReading(item.key)}
+                  style={{
+                    border: 0,
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    color: 'var(--danger)',
+                    padding: '0 12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  aria-label={`Remover leitura de ${item.bookName} ${item.chapter}:${item.verse}`}
+                >
+                  Remover
+                </button>
+              </div>
             ))}
           </div>
         )}
