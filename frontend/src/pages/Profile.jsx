@@ -18,6 +18,23 @@ export default function Profile() {
       { id: 'nvi', name: 'Nova Versão Internacional', language: 'pt-BR' },
       { id: 'ra', name: 'Almeida Revista e Atualizada', language: 'pt-BR' },
       { id: 'acf', name: 'Almeida Corrigida Fiel', language: 'pt-BR' },
+      { id: 'ara', name: 'Almeida Revista e Atualizada (ARA)', language: 'pt-BR' },
+      { id: 'tb', name: 'Tradução Brasileira', language: 'pt-BR' },
+      { id: 'tbsi', name: 'Tradução Brasileira (TBSI)', language: 'pt-BR' },
+      { id: 'bb', name: 'Bíblia do Brasil', language: 'pt-BR' },
+      { id: 'blh', name: 'Bíblia Livre de Herança', language: 'pt-BR' },
+      { id: 'nvt', name: 'Nova Versão Transformadora', language: 'pt-BR' },
+      { id: 'rvr', name: 'Reina-Valera Revisada', language: 'pt-BR' },
+      { id: 'rv1960', name: 'Reina-Valera 1960', language: 'pt-BR' },
+      { id: 'vdl', name: 'Versão de Dom Lucas', language: 'pt-BR' },
+      { id: 'tr', name: 'Tradução de João Ferreira de Almeida', language: 'pt-BR' },
+      { id: 'pt', name: 'Português Tradicional', language: 'pt-BR' },
+      { id: 'jfa', name: 'João Ferreira de Almeida', language: 'pt-BR' },
+      { id: 'bpt', name: 'Bíblia Popular Traduzida', language: 'pt-BR' },
+      { id: 'bv', name: 'Bíblia Viva', language: 'pt-BR' },
+      { id: 'sbt', name: 'Sociedade Bíblica do Brasil', language: 'pt-BR' },
+      { id: 'capa', name: 'Capa da Bíblia', language: 'pt-BR' },
+      { id: 'gospel', name: 'Gospel Edition', language: 'pt-BR' },
       { id: 'kjv', name: 'King James Version', language: 'en' }
     ];
 
@@ -44,7 +61,13 @@ export default function Profile() {
           .filter(version => version.id && version.name)
           .filter(version => /pt|portuguese/i.test(version.language) || /pt|portuguese/i.test(version.name));
 
-        if (normalized.length) return normalized;
+        if (normalized.length) {
+          const unique = Object.values(normalized.reduce((acc, item) => {
+            acc[item.id] = item;
+            return acc;
+          }, {}));
+          return unique.length ? unique : fallbackList;
+        }
       } catch {
         // Continua para a próxima fonte.
       }
