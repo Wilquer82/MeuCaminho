@@ -396,31 +396,20 @@ export default function Bible() {
         </select>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={versionOfflineSaved ? removeFullTranslationOffline : saveFullTranslationOffline}
-          disabled={savingVersion}
-          style={{
-            ...buttonStyle,
-            marginTop: 0,
-            background: currentVersionIsOffline ? '#1f7a3d' : '#0f766e',
-            opacity: savingVersion ? 0.7 : 1,
-            boxShadow: currentVersionIsOffline ? 'inset 0 0 0 1px rgba(255,255,255,0.2)' : 'none'
-          }}
-        >
-          {savingVersion
-            ? 'Salvando versão...'
-            : currentVersionIsOffline
-              ? '✓ Versão atual salva offline • remover'
-              : 'Salvar versão completa offline'}
-        </button>
-        {currentVersionIsOffline && (
-          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--success)', fontWeight: 600 }}>
-            Versão atual disponível para leitura offline neste dispositivo.
-          </div>
-        )}
-      </div>
+      {currentVersionIsOffline && (
+        <div style={{
+          marginBottom: 16,
+          fontSize: 12,
+          color: 'var(--success)',
+          fontWeight: 600,
+          background: 'rgba(16, 185, 129, 0.08)',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
+          borderRadius: 10,
+          padding: '10px 12px'
+        }}>
+          Versão atual disponível para leitura offline neste dispositivo.
+        </div>
+      )}
 
       {offlineModeEnabled && (
         <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 12, padding: '10px 12px', marginBottom: 16, color: 'var(--success)', fontSize: 12, fontWeight: 700 }}>
