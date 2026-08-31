@@ -22,5 +22,29 @@ export const archaeologyContent = [
       'Esses contextos ajudam a entender os relatos de conquista, pacto e vida cotidiana.',
       'A arqueologia mostra como a história bíblica dialoga com a história humana mais ampla.'
     ]
+  },
+  {
+    id: 'mesopotamia',
+    title: 'Mesopotâmia e os primeiros povos do texto bíblico',
+    summary: 'O ambiente cultural em que a tradição hebraica se formou.',
+    category: 'Arqueologia',
+    source: 'Bible Odyssey',
+    body: [
+      'Entre os rios Tigre e Eufrates, civilizações antigas estabeleceram sistemas políticos, religiosos e de escrita.',
+      'Esse ambiente ajuda a entender a antiguidade da narrativa de Gênesis e dos primeiros relatos bíblicos.',
+      'A Bíblia não nasce isolada da experiência humana; ela responde ao mundo real com revelação específica.'
+    ]
+  },
+  {
+    id: 'pesach',
+    title: 'Páscoa e cultura israelita',
+    summary: 'O contexto ritual da entrega da lei e da libertação.',
+    category: 'Arqueologia',
+    source: 'Bible Odyssey',
+    body: [
+      'O ritual da Páscoa carregava forte simbolismo de libertação e memória da aliança.',
+      'Os contextos arqueológicos e históricos ajudam a compreender a dimensão social e religiosa do povo de Israel.',
+      'Esses dados ajudam a ler a narrativa bíblica com mais sensibilidade histórica.'
+    ]
   }
 ];

@@ -4,6 +4,7 @@ import api from '../services/api';
 const SESSION_KEY = 'authSession';
 const REMEMBER_DEVICE_KEY = 'rememberDevice';
 const OFFLINE_MODE_KEY = 'offlineMode';
+const AUTH_STORAGE_KEYS = ['token', 'user', SESSION_KEY, 'session', REMEMBER_DEVICE_KEY, OFFLINE_MODE_KEY];
 const AuthContext = createContext();
 
 const getStorageBackends = () => {
@@ -158,10 +159,10 @@ const hasValidStoredSession = () => {
 export const sanitizeStoredAuth = () => {
   if (typeof window === 'undefined') return false;
 
-  const keys = ['token', 'user', SESSION_KEY, 'session'];
+  let foundInvalidData = false;
 
   for (const storage of getStorageBackends()) {
-    for (const key of keys) {
+    for (const key of AUTH_STORAGE_KEYS) {
       try {
         const raw = storage.getItem(key);
         if (raw === null) continue;
@@ -169,27 +170,33 @@ export const sanitizeStoredAuth = () => {
         const isSessionKey = key === SESSION_KEY || key === 'session';
         const isUserKey = key === 'user';
         const isTokenKey = key === 'token';
+        const isRememberKey = key === REMEMBER_DEVICE_KEY;
+        const isOfflineKey = key === OFFLINE_MODE_KEY;
 
         if (isSessionKey) {
           try {
             const parsed = JSON.parse(raw);
             if (!parsed || !parsed.token || !isValidUserPayload(parsed.user)) {
               storage.removeItem(key);
+              foundInvalidData = true;
             }
           } catch {
             storage.removeItem(key);
+            foundInvalidData = true;
           }
           continue;
         }
 
         if (isUserKey) {
           try {
-            JSON.parse(raw);
-            if (!isValidUserPayload(JSON.parse(raw))) {
+            const parsed = JSON.parse(raw);
+            if (!isValidUserPayload(parsed)) {
               storage.removeItem(key);
+              foundInvalidData = true;
             }
           } catch {
             storage.removeItem(key);
+            foundInvalidData = true;
           }
           continue;
         }
@@ -198,6 +205,14 @@ export const sanitizeStoredAuth = () => {
           const token = String(raw).trim();
           if (!token || token.length < 10) {
             storage.removeItem(key);
+            foundInvalidData = true;
+          }
+        }
+
+        if (isRememberKey || isOfflineKey) {
+          if (raw !== 'true' && raw !== 'false') {
+            storage.removeItem(key);
+            foundInvalidData = true;
           }
         }
       } catch {
@@ -206,17 +221,23 @@ export const sanitizeStoredAuth = () => {
     }
   }
 
-  const valid = hasValidStoredSession();
-  if (!valid) {
+  if (!hasValidStoredSession()) {
     clearSession();
     return true;
   }
 
-  return false;
+  return foundInvalidData;
 };
 
 if (typeof window !== 'undefined') {
-  sanitizeStoredAuth();
+  const shouldSanitize = !sessionStorage.getItem('authSanitized');
+  if (shouldSanitize) {
+    const cleaned = sanitizeStoredAuth();
+    sessionStorage.setItem('authSanitized', '1');
+    if (cleaned) {
+      window.location.reload();
+    }
+  }
 }
 
 export function AuthProvider({ children }) {

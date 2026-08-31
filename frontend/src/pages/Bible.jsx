@@ -96,14 +96,53 @@ export default function Bible() {
   }
 
   async function loadPublicTranslations() {
-    const response = await fetch('https://api.midvash.com/v1/versions?language=pt-br');
-    const { data } = await response.json();
-    return data.map(version => ({ id: version.slug, name: version.name, language: version.language }));
+    const fallbackList = [
+      { id: 'nvi', name: 'Nova Versão Internacional', language: 'pt-BR' },
+      { id: 'ra', name: 'Almeida Revista e Atualizada', language: 'pt-BR' },
+      { id: 'acf', name: 'Almeida Corrigida Fiel', language: 'pt-BR' },
+      { id: 'kjv', name: 'King James Version', language: 'en' }
+    ];
+
+    const candidateUrls = [
+      'https://api.midvash.com/v1/versions?language=pt-BR',
+      'https://api.midvash.com/v1/versions?language=pt-br',
+      'https://api.midvash.com/v1/versions?language=pt',
+      'https://api.midvash.com/v1/versions'
+    ];
+
+    for (const url of candidateUrls) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) continue;
+
+        const payload = await response.json();
+        const rawVersions = Array.isArray(payload) ? payload : payload.data || [];
+        const normalized = rawVersions
+          .map(version => ({
+            id: version.slug || version.id || version.name,
+            name: version.name || version.title || 'Versão',
+            language: version.language || version.lang || 'pt-BR'
+          }))
+          .filter(version => version.id && version.name)
+          .filter(version => /pt|portuguese/i.test(version.language) || /pt|portuguese/i.test(version.name));
+
+        if (normalized.length) return normalized;
+      } catch {
+        // Continua para a próxima fonte.
+      }
+    }
+
+    return fallbackList;
   }
 
   useEffect(() => {
+    if (translations.length && !translations.some(version => version.id === translation)) {
+      setTranslation(translations[0].id);
+      return;
+    }
+
     localStorage.setItem('bibleTranslation', translation);
-  }, [translation]);
+  }, [translation, translations]);
 
   useEffect(() => {
     setOfflineModeEnabled(localStorage.getItem(OFFLINE_MODE_KEY) === 'true');

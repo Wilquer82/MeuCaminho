@@ -74,8 +74,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
 
-// SPA fallback: servir index.html para todas as rotas não-API
-app.get('*', (req, res) => {
+// SPA fallback: servir index.html para rotas do frontend e evitar 404 em refresh
+app.get(/^\/(?!api).*/, (req, res) => {
   const indexPath = path.join(frontendDistPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {

@@ -18,11 +18,25 @@ export default function Home() {
 
   useEffect(() => {
     loadTodayLesson();
-    // Mostrar modal se for primeira visita
+
+    const refreshLesson = () => {
+      if (!document.hidden) {
+        loadTodayLesson();
+      }
+    };
+
+    window.addEventListener('focus', refreshLesson);
+    document.addEventListener('visibilitychange', refreshLesson);
+
     if (user?.firstAccess) {
       setShowMissionModal(true);
     }
-  }, []);
+
+    return () => {
+      window.removeEventListener('focus', refreshLesson);
+      document.removeEventListener('visibilitychange', refreshLesson);
+    };
+  }, [user?._id]);
 
   const loadTodayLesson = async () => {
     try {

@@ -1,17 +1,43 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const getStoredPreference = (key) => {
+  try {
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key) ?? 'false';
+  } catch {
+    return 'false';
+  }
+};
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberDevice, setRememberDevice] = useState(false);
-  const [offlineMode, setOfflineMode] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(() => getStoredPreference('rememberDevice') === 'true');
+  const [offlineMode, setOfflineMode] = useState(() => getStoredPreference('offlineMode') === 'true');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const submitLockRef = useRef(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('rememberDevice', String(rememberDevice));
+      sessionStorage.setItem('rememberDevice', String(rememberDevice));
+    } catch {
+      // Ignora falta de armazenamento.
+    }
+  }, [rememberDevice]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('offlineMode', String(offlineMode));
+      sessionStorage.setItem('offlineMode', String(offlineMode));
+    } catch {
+      // Ignora falta de armazenamento.
+    }
+  }, [offlineMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
