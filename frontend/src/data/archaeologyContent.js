@@ -46,5 +46,29 @@ export const archaeologyContent = [
       'Os contextos arqueológicos e históricos ajudam a compreender a dimensão social e religiosa do povo de Israel.',
       'Esses dados ajudam a ler a narrativa bíblica com mais sensibilidade histórica.'
     ]
+  },
+  {
+    id: 'monte-templo',
+    title: 'O monte do Templo e a cidade de Davi',
+    summary: 'A geografia sagrada da Jerusalém antiga.',
+    category: 'Arqueologia',
+    source: 'Bible Odyssey',
+    body: [
+      'O espaço do Templo e da cidade foi central para a identidade religiosa, política e cultural do povo de Israel.',
+      'A arqueologia revela camadas de história e construção que ajudam a compreender a Escritura.',
+      'As referências geográficas do texto bíblico ganham profundidade quando vistas em contexto.'
+    ]
+  },
+  {
+    id: 'povos-antigos',
+    title: 'Povos antigos e as narrativas bíblicas',
+    summary: 'Como lugares, culturas e línguas ajudam a ler a Bíblia com precisão.',
+    category: 'Arqueologia',
+    source: 'Bible Odyssey',
+    body: [
+      'A Bíblia se desenvolve em um mundo de povos, impérios e rotas comerciais.',
+      'Os achados arqueológicos ajudam a compreender os caminhos e os conflitos que marcam a narrativa.',
+      'Esse contexto fortalece a leitura histórica sem reduzir a fé à mera folclore.'
+    ]
   }
 ];

@@ -46,5 +46,29 @@ export const curiosityContent = [
       'Os evangelhos são centrais para a compreensão de Jesus e do Reino de Deus.',
       'A Bíblia é, ao mesmo tempo, um livro de louvor, de história e de revelação pessoal.'
     ]
+  },
+  {
+    id: 'porque-tanto-dificuldade',
+    title: 'Por que a fé passa por dificuldades?',
+    summary: 'As tribulações fazem parte da caminhada, mas não definem a promessa de Deus.',
+    category: 'Curiosidades',
+    source: 'Got Questions',
+    body: [
+      'A vida cristã não elimina provas, mas sustenta a pessoa em meio a elas.',
+      'O sofrimento pode aprofundar a confiança quando é trazido à presença de Deus.',
+      'A fé não se mede pela ausência de dor, mas pela fidelidade em meio à dor.'
+    ]
+  },
+  {
+    id: 'como-ora',
+    title: 'Como orar de forma mais sincera?',
+    summary: 'A oração é encontro, confiança e entrega.',
+    category: 'Curiosidades',
+    source: 'Got Questions',
+    body: [
+      'A oração não precisa ser perfeita para ser aceitável a Deus.',
+      'Ela pode ser simples, honesta e profunda, como um coração falando com o Pai.',
+      'O hábito de orar fortalece a percepção da presença de Deus e sua direção na vida.'
+    ]
   }
 ];

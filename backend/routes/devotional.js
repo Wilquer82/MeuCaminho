@@ -12,31 +12,93 @@ const decodeHtml = value => value
   .replace(/&#39;|&apos;/g, "'")
   .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
 
+const devotionalPool = [
+  {
+    title: 'A paz que excede o entendimento',
+    bibleReference: 'Filipenses 4:6-7',
+    bibleText: 'Não andeis ansiosos por coisa alguma; antes, em tudo, sejam conhecidas diante de Deus as vossas petições; e a paz de Deus, que excede todo o entendimento, guardará os vossos corações e os vossos pensamentos em Cristo Jesus.',
+    reflection: 'A paz de Deus não nasce da ausência de problemas, mas da presença de Cristo no meio deles. Quando entregamos nossas preocupações ao Senhor, Ele nos guarda em um descanso que a mente humana não consegue produzir.',
+    meditationQuestion: 'Qual preocupação você precisa entregar hoje ao Senhor?',
+    prayer: 'Senhor, eu te entrego minhas angústias e peço a paz que só vem de Ti. Guarda meu coração e me ajuda a confiar em Teu cuidado.',
+    category: 'fé',
+    author: 'Meu Caminho de Luz',
+    source: 'Meu Caminho de Luz'
+  },
+  {
+    title: 'Força para seguir',
+    bibleReference: 'Filipenses 4:13',
+    bibleText: 'Tudo posso naquele que me fortalece.',
+    reflection: 'A fé não elimina as dificuldades, mas nos dá a força para perseverar com dignidade, esperança e coragem. Cada passo de obediência é uma vitória de confiança em Deus.',
+    meditationQuestion: 'Em que área da sua vida você precisa confiar no poder de Deus hoje?',
+    prayer: 'Senhor, fortalece meu coração e me lembra que, com Ti, eu posso seguir em frente mesmo nas dificuldades.',
+    category: 'fé',
+    author: 'Meu Caminho de Luz',
+    source: 'Meu Caminho de Luz'
+  },
+  {
+    title: 'O Senhor é meu pastor',
+    bibleReference: 'Salmo 23:1',
+    bibleText: 'O Senhor é o meu pastor; nada me faltará.',
+    reflection: 'Quando reconhecemos que Deus cuida de nós, nossa ansiedade diminui e a confiança cresce. Ele não apenas guia, mas sustenta e protege em cada etapa da caminhada.',
+    meditationQuestion: 'Onde você precisa reconhecer mais de perto o cuidado de Deus?',
+    prayer: 'Senhor, eu descanso no Teu cuidado e confio que Tu me guia, sustenta e protege em cada jornada.',
+    category: 'esperança',
+    author: 'Meu Caminho de Luz',
+    source: 'Meu Caminho de Luz'
+  },
+  {
+    title: 'Confie no Senhor',
+    bibleReference: 'Provérbios 3:5-6',
+    bibleText: 'Confia no Senhor de todo o teu coração e não te apoies no teu próprio entendimento. Reconhece-o em todos os teus caminhos, e Ele endireitará as tuas veredas.',
+    reflection: 'Não é necessário entender tudo para obedecer. Deus chama a confiar, mesmo quando o caminho ainda está envolto em incertezas. Quanto mais entregamos nosso caminho a Ele, mais paz encontramos.',
+    meditationQuestion: 'Qual decisão você precisa entregar ao Senhor hoje?',
+    prayer: 'Senhor, eu confio em Ti mais do que em minhas próprias forças. Guia meus passos e endireita meus caminhos.',
+    category: 'sabedoria',
+    author: 'Meu Caminho de Luz',
+    source: 'Meu Caminho de Luz'
+  },
+  {
+    title: 'Amor que transforma',
+    bibleReference: 'João 3:16',
+    bibleText: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.',
+    reflection: 'O amor de Deus não é distante ou frio: ele se revela em ação, graça e entrega. Esse amor nos chama a viver com esperança, misericórdia e profunda gratidão.',
+    meditationQuestion: 'Como você pode viver o amor de Deus hoje em sua casa, trabalho e relações?',
+    prayer: 'Senhor, ajuda-me a receber e compartilhar o Teu amor, tornando-me mais sensível à graça e à misericórdia que me foste dada.',
+    category: 'amor',
+    author: 'Meu Caminho de Luz',
+    source: 'Meu Caminho de Luz'
+  }
+];
+
+function getPortugueseDevotionalForDate(date = new Date()) {
+  const dayKey = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const offset = Math.abs(Math.floor(dayKey.getTime() / 86400000));
+  const devotional = devotionalPool[offset % devotionalPool.length];
+
+  return {
+    date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+    title: devotional.title,
+    bibleReference: devotional.bibleReference,
+    bibleText: devotional.bibleText,
+    bibleVersion: 'NVI',
+    reflection: devotional.reflection,
+    meditationQuestion: devotional.meditationQuestion,
+    prayer: devotional.prayer,
+    category: devotional.category,
+    author: devotional.author,
+    source: devotional.source
+  };
+}
+
 async function createFromPublicVerse() {
-  const endpoint = process.env.DEVOTIONAL_API_URL || 'https://www.biblegateway.com/votd/get/?format=json';
-  const response = await fetch(endpoint);
-  if (!response.ok) throw new Error('Fonte pública indisponível');
-
-  const payload = await response.json();
-  const verse = payload.votd;
-  if (!verse?.reference || !verse?.text) throw new Error('Resposta pública inválida');
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   try {
+    const devotional = getPortugueseDevotionalForDate(today);
     return await Devotional.create({
-      date: today,
-      title: 'Versículo do dia',
-      bibleReference: decodeHtml(verse.reference),
-      bibleText: decodeHtml(verse.text),
-      bibleVersion: verse.version || 'NIV',
-      reflection: 'Separe alguns minutos para ler este versículo com calma. Permita que a Palavra ilumine suas decisões e fortaleça sua caminhada hoje.',
-      meditationQuestion: 'Como este versículo pode transformar sua atitude hoje?',
-      prayer: 'Senhor, ajuda-me a guardar esta Palavra no coração e vivê-la com fé. Amém.',
-      category: 'fé',
-      author: 'Meu Caminho de Luz',
-      source: `BibleGateway VOTD — ${verse.permalink || endpoint}`
+      ...devotional,
+      date: today
     });
   } catch (err) {
     if (err.code === 11000) return Devotional.findOne({ date: { $gte: today } });
@@ -104,6 +166,7 @@ router.post('/:id/complete', auth, authRateLimiter, async (req, res) => {
     // Dar XP ao usuário
     const user = await User.findById(req.user._id);
     user.xp += 10;
+    user.applyDailyStreak();
     await user.save();
 
     res.json({

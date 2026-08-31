@@ -60,8 +60,8 @@ export default function About() {
       }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 10px' }}>Sobre o app</h2>
         <p style={{ fontSize: 14, lineHeight: 1.7, color: '#334155', margin: 0 }}>
-          O <strong>Meu Caminho de Luz</strong> é um aplicativo gamificado de leitura bíblica,
-          inspirado na metodologia do Duolingo. Nossa missão é tornar a leitura da
+          O <strong>Meu Caminho de Luz</strong> é um aplicativo gamificado de leitura bíblica.
+          Nossa missão é tornar a leitura da
           Palavra de Deus um hábito diário prazeroso e consistente.
         </p>
         <p style={{ fontSize: 14, lineHeight: 1.7, color: '#334155', margin: '12px 0 0' }}>

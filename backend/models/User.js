@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const getLocalDateKey = (date = new Date()) => {
+  const value = new Date(date);
+  const localDate = new Date(value.getTime() - value.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -91,6 +97,30 @@ userSchema.methods.incrementDailyLessons = function() {
 
 userSchema.methods.isPremium = function() {
   return ['premium', 'lifetime'].includes(this.plan);
+};
+
+userSchema.methods.applyDailyStreak = function() {
+  const todayKey = getLocalDateKey(new Date());
+  const lastActiveKey = this.lastActive ? getLocalDateKey(this.lastActive) : null;
+
+  if (!lastActiveKey) {
+    this.streak = 1;
+  } else if (lastActiveKey === todayKey) {
+    this.streak = this.streak || 1;
+  } else {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = getLocalDateKey(yesterday);
+
+    if (lastActiveKey === yesterdayKey) {
+      this.streak = (this.streak || 0) + 1;
+    } else {
+      this.streak = 1;
+    }
+  }
+
+  this.lastActive = new Date();
+  return this.streak;
 };
 
 userSchema.pre('save', async function(next) {

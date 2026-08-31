@@ -5,22 +5,6 @@ const { checkDailyLimit, authRateLimiter } = require('../middleware/rateLimit');
 const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 
-const applyDailyStreak = (user) => {
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const lastActiveKey = user.lastActive ? new Date(user.lastActive).toISOString().slice(0, 10) : null;
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = yesterday.toISOString().slice(0, 10);
-
-  if (lastActiveKey === yesterdayKey) {
-    user.streak = (user.streak || 0) + 1;
-  } else if (lastActiveKey !== todayKey) {
-    user.streak = 1;
-  }
-
-  user.lastActive = new Date();
-};
-
 // GET /api/lessons — Listar lições por categoria
 router.get('/', auth, async (req, res) => {
   try {
@@ -104,7 +88,7 @@ router.post('/:id/complete', auth, authRateLimiter, checkDailyLimit, async (req,
       // Dar XP
       user.xp += lesson.xpReward;
 
-      applyDailyStreak(user);
+      user.applyDailyStreak();
       await user.save();
     }
 

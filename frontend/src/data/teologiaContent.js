@@ -54,5 +54,27 @@ export const teologiaContent = [
       'Sua missão inclui adoração, ensino, serviço e testemunho.',
       'O povo de Deus é chamado a viver em unidade e amor, refletindo a presença de Cristo.'
     ]
+  },
+  {
+    id: 'revelacao',
+    title: 'Revelação e conhecimento de Deus',
+    summary: 'Como Deus se revela ao coração humano e à sua história.',
+    category: 'Teologia',
+    body: [
+      'Deus se revela em Cristo, na Escritura e no testemunho do Espírito Santo.',
+      'O conhecimento de Deus não é apenas teórico, mas pessoal e transformador.',
+      'A fé cristã reconhece que a revelação divina precede e orienta toda compreensão humana.'
+    ]
+  },
+  {
+    id: 'pecado-e-graca',
+    title: 'Pecado e graça',
+    summary: 'O drama humano e a misericórdia de Deus.',
+    category: 'Teologia',
+    body: [
+      'O pecado afasta o ser humano de Deus e destrói a comunhão com Ele.',
+      'A graça de Deus vem antes, durante e depois da nossa resposta.',
+      'O evangelho nos apresenta a possibilidade de restituição, transformação e esperança.'
+    ]
   }
 ];
