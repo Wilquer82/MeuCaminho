@@ -48,27 +48,27 @@ export const curiosityContent = [
     ]
   },
   {
-    id: 'porque-tanto-dificuldade',
-    title: 'Por que a fé passa por dificuldades?',
-    summary: 'As tribulações fazem parte da caminhada, mas não definem a promessa de Deus.',
+    id: 'por-que-jesus',
+    title: 'Por que Jesus é central na Bíblia?',
+    summary: 'Toda a Escritura aponta para a pessoa e a obra de Cristo.',
     category: 'Curiosidades',
     source: 'Got Questions',
     body: [
-      'A vida cristã não elimina provas, mas sustenta a pessoa em meio a elas.',
-      'O sofrimento pode aprofundar a confiança quando é trazido à presença de Deus.',
-      'A fé não se mede pela ausência de dor, mas pela fidelidade em meio à dor.'
+      'Jesus é o centro da revelação bíblica, desde a promessa no Éden até a consumação final.',
+      'Em todos os livros, a mensagem converge para a graça, a cruz e a ressurreição.',
+      'Entender Cristo ajuda a ler toda a Bíblia com coerência e esperança.'
     ]
   },
   {
-    id: 'como-ora',
-    title: 'Como orar de forma mais sincera?',
-    summary: 'A oração é encontro, confiança e entrega.',
+    id: 'porque-pratica',
+    title: 'Como a fé vira prática?',
+    summary: 'A vida cristã é marcada por obediência e amor concreto.',
     category: 'Curiosidades',
     source: 'Got Questions',
     body: [
-      'A oração não precisa ser perfeita para ser aceitável a Deus.',
-      'Ela pode ser simples, honesta e profunda, como um coração falando com o Pai.',
-      'O hábito de orar fortalece a percepção da presença de Deus e sua direção na vida.'
+      'A fé verdadeira produz frutos de justiça, gentileza e serviço.',
+      'Não basta conhecer a verdade; é preciso viver em coerência com ela.',
+      'A prática espiritual transforma o caráter e fortalece a comunidade.'
     ]
   }
 ];

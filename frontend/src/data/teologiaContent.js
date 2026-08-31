@@ -56,25 +56,25 @@ export const teologiaContent = [
     ]
   },
   {
-    id: 'revelacao',
-    title: 'Revelação e conhecimento de Deus',
-    summary: 'Como Deus se revela ao coração humano e à sua história.',
+    id: 'graca',
+    title: 'Graça',
+    summary: 'Como a graça de Deus nos alcança e transforma.',
     category: 'Teologia',
     body: [
-      'Deus se revela em Cristo, na Escritura e no testemunho do Espírito Santo.',
-      'O conhecimento de Deus não é apenas teórico, mas pessoal e transformador.',
-      'A fé cristã reconhece que a revelação divina precede e orienta toda compreensão humana.'
+      'A graça é o favor gratuito de Deus, não merecido por nós, mas ofertado em Cristo.',
+      'Ela não destrói a responsabilidade, mas nos leva à transformação por meio da fé.',
+      'Vivemos pela graça, crescemos pela graça e testemunhamos a graça.'
     ]
   },
   {
-    id: 'pecado-e-graca',
-    title: 'Pecado e graça',
-    summary: 'O drama humano e a misericórdia de Deus.',
+    id: 'ferramenta-de-fe',
+    title: 'Fé e obediência',
+    summary: 'Fé não é apenas crença, mas caminhada em confiança.',
     category: 'Teologia',
     body: [
-      'O pecado afasta o ser humano de Deus e destrói a comunhão com Ele.',
-      'A graça de Deus vem antes, durante e depois da nossa resposta.',
-      'O evangelho nos apresenta a possibilidade de restituição, transformação e esperança.'
+      'A fé é confiança em Deus e na Sua Palavra, mesmo antes de ver o resultado completo.',
+      'A obediência prova a sinceridade da fé e fortalece a vida espiritual.',
+      'Cristo chama seu povo a viver em confiança, amor e ação.'
     ]
   }
 ];

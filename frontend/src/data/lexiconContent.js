@@ -36,30 +36,30 @@ export const lexiconContent = [
     context: 'A palavra é usada para descrever a revelação de Deus em Cristo e na Escritura.'
   },
   {
-    id: 'misericordia',
-    title: 'Élœm',
-    language: 'Hebraico',
-    meaning: 'Piedade, compaixão, misericórdia ativa.',
-    category: 'Lexicon',
-    source: 'BibleProject Lexicon',
-    context: 'Termo importante para entender a compaixão de Deus e a forma como Ele se move em favor do povo.'
-  },
-  {
     id: 'shalom',
     title: 'Shalom',
     language: 'Hebraico',
-    meaning: 'Paz, bem-estar, integridade, saúde.',
+    meaning: 'Paz, integridade, bem-estar, restauração.',
     category: 'Lexicon',
     source: 'BibleProject Lexicon',
-    context: 'A paz bíblica é mais do que ausência de conflito: é comunhão, plenitude e restauração.'
+    context: 'A paz de Deus envolve restauração de pessoas, relações e comunidade.'
   },
   {
     id: 'metanoia',
     title: 'Metanoia',
     language: 'Grego',
-    meaning: 'Arrependimento, mudança de mente e de direção.',
+    meaning: 'Arrependimento, mudança de mente, conversão.',
     category: 'Lexicon',
     source: 'BibleProject Lexicon',
-    context: 'Em muitos textos, a conversão envolve uma mudança profundamente espiritual e moral.'
+    context: 'Expressa a mudança de direção espiritual e moral que acompanha a fé.'
+  },
+  {
+    id: 'ekklésia',
+    title: 'Ekklesia',
+    language: 'Grego',
+    meaning: 'Assembléia, comunidade chamada, igreja.',
+    category: 'Lexicon',
+    source: 'BibleProject Lexicon',
+    context: 'Descreve a comunidade de Deus reunida em missão e adoração.'
   }
 ];

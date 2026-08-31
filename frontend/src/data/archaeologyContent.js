@@ -48,27 +48,27 @@ export const archaeologyContent = [
     ]
   },
   {
-    id: 'monte-templo',
-    title: 'O monte do Templo e a cidade de Davi',
-    summary: 'A geografia sagrada da Jerusalém antiga.',
+    id: 'jerico',
+    title: 'Jericó e as cidades do povo de Israel',
+    summary: 'Implicações históricas e geográficas das cidades bíblicas.',
     category: 'Arqueologia',
     source: 'Bible Odyssey',
     body: [
-      'O espaço do Templo e da cidade foi central para a identidade religiosa, política e cultural do povo de Israel.',
-      'A arqueologia revela camadas de história e construção que ajudam a compreender a Escritura.',
-      'As referências geográficas do texto bíblico ganham profundidade quando vistas em contexto.'
+      'Jericó é um dos sítios mais conhecidos no contexto do povo de Israel e da conquista.',
+      'Estudos arqueológicos ajudam a conectar história, geografia e tradição na leitura do Pentateuco e dos livros históricos.',
+      'A arqueologia examina o que foi preservado e o que ainda precisa ser interpretado com cuidado.'
     ]
   },
   {
-    id: 'povos-antigos',
-    title: 'Povos antigos e as narrativas bíblicas',
-    summary: 'Como lugares, culturas e línguas ajudam a ler a Bíblia com precisão.',
+    id: 'tabernaculo',
+    title: 'Tabernáculo e vida cultual',
+    summary: 'O ambiente da adoração no deserto e o sentido simbólico do culto.',
     category: 'Arqueologia',
     source: 'Bible Odyssey',
     body: [
-      'A Bíblia se desenvolve em um mundo de povos, impérios e rotas comerciais.',
-      'Os achados arqueológicos ajudam a compreender os caminhos e os conflitos que marcam a narrativa.',
-      'Esse contexto fortalece a leitura histórica sem reduzir a fé à mera folclore.'
+      'O tabernáculo foi o centro da presença de Deus no povo de Israel.',
+      'Seu estudo mostra a relação entre ritual, memória e identidade.',
+      'A arquitetura e os rituais ajudam a ler os relatos do Êxodo com maior riqueza histórica.'
     ]
   }
 ];

@@ -6,7 +6,8 @@ const videos = [
   {
     id: 'genesis-bp',
     title: 'A História de Gênesis',
-    youtubeId: 'hBMPXsR1EJk',
+    youtubeId: 'genesis-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Genesis+overview',
     duration: '9:18',
     category: 'AT',
     subcategory: 'Pentateuco',
@@ -18,7 +19,8 @@ const videos = [
   {
     id: 'exodus-bp',
     title: 'A História de Êxodo',
-    youtubeId: 'lnddaWQ_TZY',
+    youtubeId: 'exodus-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Exodus+overview',
     duration: '10:01',
     category: 'AT',
     subcategory: 'Pentateuco',
@@ -29,7 +31,8 @@ const videos = [
   {
     id: 'psalms-bp',
     title: 'A História dos Salmos',
-    youtubeId: 'gwhyTddtx8E',
+    youtubeId: 'psalms-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Psalms+overview',
     duration: '9:47',
     category: 'AT',
     subcategory: 'Poesia',
@@ -40,7 +43,8 @@ const videos = [
   {
     id: 'proverbs-bp',
     title: 'A História dos Provérbios',
-    youtubeId: 'qDJI5IfeMsk',
+    youtubeId: 'proverbs-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Proverbs+overview',
     duration: '9:54',
     category: 'AT',
     subcategory: 'Sabedoria',
@@ -51,7 +55,8 @@ const videos = [
   {
     id: 'matthew-bp',
     title: 'A História de Mateus',
-    youtubeId: 'MfLnILqNMEA',
+    youtubeId: 'matthew-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Matthew+overview',
     duration: '9:35',
     category: 'NT',
     subcategory: 'Evangelhos',
@@ -62,7 +67,8 @@ const videos = [
   {
     id: 'luke-bp',
     title: 'A História de Lucas',
-    youtubeId: 'T3QdxSl4F8A',
+    youtubeId: 'luke-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Luke+overview',
     duration: '9:29',
     category: 'NT',
     subcategory: 'Evangelhos',
@@ -73,7 +79,8 @@ const videos = [
   {
     id: 'john-bp',
     title: 'A História de João',
-    youtubeId: 'jvJhP1z4KqE',
+    youtubeId: 'john-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+John+overview',
     duration: '9:43',
     category: 'NT',
     subcategory: 'Evangelhos',
@@ -84,7 +91,8 @@ const videos = [
   {
     id: 'romans-bp',
     title: 'A História de Romanos',
-    youtubeId: 'qS8F2wL-cA4',
+    youtubeId: 'romans-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Romans+overview',
     duration: '9:56',
     category: 'NT',
     subcategory: 'Epístolas',
@@ -95,7 +103,8 @@ const videos = [
   {
     id: 'revelation-bp',
     title: 'A História de Apocalipse',
-    youtubeId: 'eB5dRBz6t3w',
+    youtubeId: 'revelation-overview',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Revelation+overview',
     duration: '9:44',
     category: 'NT',
     subcategory: 'Profecia',
@@ -106,7 +115,8 @@ const videos = [
   {
     id: 'jesus-bp',
     title: 'Quem é Jesus?',
-    youtubeId: 'YW_rMhm5sHw',
+    youtubeId: 'who-is-jesus',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Who+is+Jesus',
     duration: '8:15',
     category: 'Teologia',
     subcategory: 'Cristologia',
@@ -117,7 +127,8 @@ const videos = [
   {
     id: 'gospel-bp',
     title: 'O que é o Evangelho?',
-    youtubeId: 'BRjeM5qWXD4',
+    youtubeId: 'what-is-the-gospel',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+What+is+the+Gospel',
     duration: '7:18',
     category: 'Teologia',
     subcategory: 'Salvação',
@@ -128,7 +139,8 @@ const videos = [
   {
     id: 'justice-bp',
     title: 'Justiça Bíblica',
-    youtubeId: 'zPK87QyH1DY',
+    youtubeId: 'biblical-justice',
+    youtubeUrl: 'https://www.youtube.com/results?search_query=Bible+Project+Biblical+justice',
     duration: '8:32',
     category: 'Teologia',
     subcategory: 'Ética',
@@ -152,12 +164,11 @@ export default function Videos() {
   const [message, setMessage] = useState('');
   const [completingVideo, setCompletingVideo] = useState(false);
 
-  const openYouTube = (youtubeId) => {
-    const url = `https://www.youtube.com/watch?v=${youtubeId}`;
-    
-    // Adiciona o vídeo à lista de assistidos se não estiver lá
-    if (!watchedVideos.includes(youtubeId)) {
-      const newWatched = [...watchedVideos, youtubeId];
+  const openYouTube = (video) => {
+    const url = video.youtubeUrl || `https://www.youtube.com/watch?v=${video.youtubeId}`;
+
+    if (!watchedVideos.includes(video.youtubeId)) {
+      const newWatched = [...watchedVideos, video.youtubeId];
       setWatchedVideos(newWatched);
       localStorage.setItem('watchedVideos', JSON.stringify(newWatched));
     }
@@ -341,7 +352,7 @@ export default function Videos() {
       {featured && (
         <div
           className="card-tap"
-          onClick={() => openYouTube(featured.youtubeId)}
+          onClick={() => openYouTube(featured)}
           style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: 16, overflow: 'hidden', marginBottom: 14,
@@ -397,7 +408,7 @@ export default function Videos() {
       {rest.map(video => (
         <div
           key={video.id}
-          onClick={() => openYouTube(video.youtubeId)}
+          onClick={() => openYouTube(video)}
           className="card-tap"
           style={{
             display: 'flex', gap: 10, background: 'var(--card)',
