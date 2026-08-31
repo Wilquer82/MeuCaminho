@@ -49,12 +49,10 @@ export default function App() {
   return (
     <div style={{
       width: '100%',
-      maxWidth: 480,
-      margin: '0 auto',
       minHeight: '100vh',
+      margin: 0,
       background: 'var(--bg)',
       position: 'relative',
-      boxShadow: '0 0 40px rgba(0,0,0,.06)',
       paddingTop: 'env(safe-area-inset-top, 0px)',
       paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))'
     }}>

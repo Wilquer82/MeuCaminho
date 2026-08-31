@@ -4,31 +4,55 @@ import api from '../services/api';
 const SESSION_KEY = 'authSession';
 const AuthContext = createContext();
 
-const readStoredSession = () => {
+const getStorage = () => {
+  if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-    if (!parsed?.token || !parsed?.user) {
-      return null;
-    }
-
-    return parsed;
+    return window.localStorage;
   } catch {
     return null;
   }
 };
 
+const readStoredSession = () => {
+  const storage = getStorage();
+  if (!storage) return null;
+
+  const keys = [SESSION_KEY, 'session'];
+
+  for (const key of keys) {
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw);
+      if (parsed?.token && parsed?.user) {
+        return parsed;
+      }
+    } catch {
+      // Ignora sessão inválida.
+    }
+  }
+
+  return null;
+};
+
 const persistSession = (token, user) => {
+  const storage = getStorage();
+  if (!storage) return;
+
   const session = { token, user };
-  localStorage.setItem('token', token);
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  storage.setItem('token', token);
+  storage.setItem(SESSION_KEY, JSON.stringify(session));
+  storage.setItem('session', JSON.stringify(session));
 };
 
 const clearSession = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem(SESSION_KEY);
+  const storage = getStorage();
+  if (!storage) return;
+
+  storage.removeItem('token');
+  storage.removeItem(SESSION_KEY);
+  storage.removeItem('session');
 };
 
 export function AuthProvider({ children }) {
