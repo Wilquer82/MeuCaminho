@@ -66,9 +66,11 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401 && typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('authSession');
-      localStorage.removeItem('session');
+      ['token', 'authSession', 'session', 'user', 'rememberDevice', 'offlineMode'].forEach(key => {
+        try { window.localStorage.removeItem(key); } catch {}
+        try { window.sessionStorage.removeItem(key); } catch {}
+      });
+      window.dispatchEvent(new Event('auth:changed'));
       window.location.href = '/login';
     }
     return Promise.reject(error);

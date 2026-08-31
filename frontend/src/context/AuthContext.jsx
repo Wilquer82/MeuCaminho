@@ -304,10 +304,12 @@ export function AuthProvider({ children }) {
   const updateUser = (newData) => {
     setUser(prev => {
       const nextUser = { ...(prev || {}), ...newData };
-      const token = localStorage.getItem('token');
-
-      if (token) {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user: nextUser }));
+      const sessionData = readStoredSession();
+      
+      if (sessionData && sessionData.token) {
+        const rememberDevice = getStorageValue(REMEMBER_DEVICE_KEY) === 'true';
+        const offlineMode = getStorageValue(OFFLINE_MODE_KEY) === 'true';
+        persistSession(sessionData.token, nextUser, rememberDevice, offlineMode);
       }
 
       return nextUser;
