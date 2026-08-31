@@ -184,6 +184,10 @@ export default function Categories() {
     return `/bible?book=${normalizedSlug}&chapter=${chapter}`;
   };
 
+  const openBookDirectly = (bookSlug) => {
+    navigate(toBookChapterUrl(bookSlug, 1));
+  };
+
   return (
     <div style={{ padding: '0 18px 100px' }} className="fade-in">
       <h2 style={{ fontSize: 20, fontWeight: 700, margin: '16px 0 4px' }}>
@@ -402,7 +406,10 @@ function CategoryCard({ category, progress, active, onClick }) {
             <button
               key={book.slug}
               type="button"
-              onClick={() => navigate(toBookChapterUrl(book.slug, 1))}
+              onClick={(event) => {
+                event.stopPropagation();
+                openBookDirectly(book.slug);
+              }}
               style={{
                 border: '1px solid var(--border)',
                 borderRadius: 12,

@@ -10,12 +10,55 @@ export default function Profile() {
   const { subscriptionStatus, cancelSubscription } = useSubscription();
   const [readingStats, setReadingStats] = useState({ totalChaptersRead: 0, readingXp: 0 });
   const [bibleVersion, setBibleVersion] = useState(() => localStorage.getItem('bibleTranslation') || 'nvi');
+  const [bibleVersions, setBibleVersions] = useState([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('readingReminderEnabled') === 'true');
+
+  async function loadPublicTranslations() {
+    const fallbackList = [
+      { id: 'nvi', name: 'Nova Versão Internacional', language: 'pt-BR' },
+      { id: 'ra', name: 'Almeida Revista e Atualizada', language: 'pt-BR' },
+      { id: 'acf', name: 'Almeida Corrigida Fiel', language: 'pt-BR' },
+      { id: 'kjv', name: 'King James Version', language: 'en' }
+    ];
+
+    const candidateUrls = [
+      'https://api.midvash.com/v1/versions?language=pt-BR',
+      'https://api.midvash.com/v1/versions?language=pt-br',
+      'https://api.midvash.com/v1/versions?language=pt',
+      'https://api.midvash.com/v1/versions'
+    ];
+
+    for (const url of candidateUrls) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) continue;
+
+        const payload = await response.json();
+        const rawVersions = Array.isArray(payload) ? payload : payload.data || [];
+        const normalized = rawVersions
+          .map(version => ({
+            id: version.slug || version.id || version.name,
+            name: version.name || version.title || 'Versão',
+            language: version.language || version.lang || 'pt-BR'
+          }))
+          .filter(version => version.id && version.name)
+          .filter(version => /pt|portuguese/i.test(version.language) || /pt|portuguese/i.test(version.name));
+
+        if (normalized.length) return normalized;
+      } catch {
+        // Continua para a próxima fonte.
+      }
+    }
+
+    return fallbackList;
+  }
 
   useEffect(() => {
     api.get('/progress/summary')
       .then(({ data }) => setReadingStats(data))
       .catch(() => {});
+
+    loadPublicTranslations().then(setBibleVersions);
   }, []);
 
   useEffect(() => {
@@ -198,10 +241,20 @@ export default function Profile() {
             onChange={event => setBibleVersion(event.target.value)}
             style={{ border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg)', color: 'var(--text)', padding: '6px 8px' }}
           >
-            <option value="nvi">NVI</option>
-            <option value="ara">ARA</option>
-            <option value="alb">ALB</option>
-            <option value="kjv">KJV</option>
+            {bibleVersions.length > 0 ? (
+              bibleVersions.map(version => (
+                <option key={version.id} value={version.id}>
+                  {version.name}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="nvi">NVI</option>
+                <option value="ara">ARA</option>
+                <option value="acf">ACF</option>
+                <option value="kjv">KJV</option>
+              </>
+            )}
           </select>
         </div>
 

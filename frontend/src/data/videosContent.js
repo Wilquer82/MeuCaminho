@@ -1,38 +1,56 @@
 export const videosContent = [
   {
-    id: 'narrative-arc',
-    title: 'A grande narrativa da Bíblia',
-    summary: 'Visão geral do plano divino ao longo dos livros sagrados.',
-    category: 'Vídeos',
-    source: 'BibleProject JSON',
-    kind: 'explainer',
-    url: 'https://bibleproject.com/'
+    id: 'genesis-bp',
+    title: 'A História de Gênesis',
+    summary: 'Descubra a história de Gênesis do Bible Project - uma visão geral do primeiro livro da Bíblia.',
+    category: 'Antigo Testamento',
+    source: 'Bible Project • YouTube',
+    kind: 'Explainer',
+    url: 'https://www.youtube.com/watch?v=hBMPXsR1EJk'
   },
   {
-    id: 'psalms',
-    title: 'O livro dos Salmos',
-    summary: 'Introdução ao coração emocional e espiritual dos Salmos.',
-    category: 'Vídeos',
-    source: 'BibleProject JSON',
-    kind: 'series',
-    url: 'https://bibleproject.com/'
+    id: 'psalms-bp',
+    title: 'A História dos Salmos',
+    summary: 'Os Salmos como expressão de louvor, lamento e devoção ao Senhor.',
+    category: 'Antigo Testamento',
+    source: 'Bible Project • YouTube',
+    kind: 'Explainer',
+    url: 'https://www.youtube.com/watch?v=gwhyTddtx8E'
   },
   {
-    id: 'creation',
-    title: 'Criação e propósito',
-    summary: 'Como a criação revela a obra de Deus e a dignidade humana.',
-    category: 'Vídeos',
-    source: 'BibleProject JSON',
-    kind: 'explainer',
-    url: 'https://bibleproject.com/'
+    id: 'matthew-bp',
+    title: 'A História de Mateus',
+    summary: 'Mateus apresenta Jesus como o Messias prometido aos judeus.',
+    category: 'Novo Testamento',
+    source: 'Bible Project • YouTube',
+    kind: 'Explainer',
+    url: 'https://www.youtube.com/watch?v=MfLnILqNMEA'
   },
   {
-    id: 'gospel',
-    title: 'O Evangelho em perspectiva',
-    summary: 'Entendendo Jesus como centro da história da salvação.',
-    category: 'Vídeos',
-    source: 'BibleProject JSON',
-    kind: 'series',
-    url: 'https://bibleproject.com/'
+    id: 'john-bp',
+    title: 'A História de João',
+    summary: 'João apresenta Jesus como a Palavra de Deus encarnada.',
+    category: 'Novo Testamento',
+    source: 'Bible Project • YouTube',
+    kind: 'Explainer',
+    url: 'https://www.youtube.com/watch?v=jvJhP1z4KqE'
+  },
+  {
+    id: 'romans-bp',
+    title: 'A História de Romanos',
+    summary: 'Paulo explica como a graça de Deus através de Jesus nos justifica.',
+    category: 'Novo Testamento',
+    source: 'Bible Project • YouTube',
+    kind: 'Explainer',
+    url: 'https://www.youtube.com/watch?v=qS8F2wL-cA4'
+  },
+  {
+    id: 'jesus-bp',
+    title: 'Quem é Jesus?',
+    summary: 'Uma exploração de quem Jesus é segundo as Escrituras.',
+    category: 'Teologia',
+    source: 'Bible Project • YouTube',
+    kind: 'Theology',
+    url: 'https://www.youtube.com/watch?v=YW_rMhm5sHw'
   }
 ];

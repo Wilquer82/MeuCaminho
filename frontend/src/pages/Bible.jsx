@@ -186,6 +186,7 @@ export default function Bible() {
   const selectedBook = books.find(book => book.id === bookId);
   const selectedBookIndex = books.findIndex(book => book.id === bookId);
   const downloadedVersions = Object.keys(getVersionCache());
+  const currentVersionIsOffline = downloadedVersions.includes(translation) || versionOfflineSaved;
 
   function goToNextChapter() {
     if (!selectedBook) return;
@@ -356,9 +357,11 @@ export default function Bible() {
         <select value={translation} onChange={event => setTranslation(event.target.value)} style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
           {translations.map(version => {
             const isAvailableOffline = downloadedVersions.includes(version.id);
+            const isCurrentVersion = version.id === translation;
+            const suffix = isAvailableOffline ? ' • Já baixada offline' : isCurrentVersion ? ' • Não salva offline' : '';
             return (
               <option key={version.id} value={version.id}>
-                {version.name} ({version.language}){isAvailableOffline ? ' • Offline' : ''}
+                {version.name} ({version.language}){suffix}
               </option>
             );
           })}
@@ -378,16 +381,22 @@ export default function Bible() {
           style={{
             ...buttonStyle,
             marginTop: 0,
-            background: versionOfflineSaved ? '#1f7a3d' : '#0f766e',
-            opacity: savingVersion ? 0.7 : 1
+            background: currentVersionIsOffline ? '#1f7a3d' : '#0f766e',
+            opacity: savingVersion ? 0.7 : 1,
+            boxShadow: currentVersionIsOffline ? 'inset 0 0 0 1px rgba(255,255,255,0.2)' : 'none'
           }}
         >
           {savingVersion
             ? 'Salvando versão...'
-            : versionOfflineSaved
-              ? '✓ Versão disponível offline • remover'
+            : currentVersionIsOffline
+              ? '✓ Versão atual salva offline • remover'
               : 'Salvar versão completa offline'}
         </button>
+        {currentVersionIsOffline && (
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--success)', fontWeight: 600 }}>
+            Versão atual disponível para leitura offline neste dispositivo.
+          </div>
+        )}
       </div>
 
       {offlineModeEnabled && (
