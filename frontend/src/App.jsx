@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSubscription } from './context/SubscriptionContext';
@@ -45,6 +46,40 @@ function PublicRoute({ children }) {
 export default function App() {
   const { showPaywall, setShowPaywall, paywallData } = useSubscription();
   const { user } = useAuth();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const handleUpdateAvailable = () => setIsUpdating(true);
+    const handleControllerChange = () => {
+      setIsUpdating(false);
+      window.location.reload();
+    };
+
+    window.addEventListener('app-sw-update-available', handleUpdateAvailable);
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    navigator.serviceWorker.ready.then((registration) => {
+      if (registration.waiting) {
+        setIsUpdating(true);
+      }
+    }).catch(() => {});
+
+    return () => {
+      window.removeEventListener('app-sw-update-available', handleUpdateAvailable);
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+    };
+  }, []);
+
+  const applyServiceWorkerUpdate = async () => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration || !registration.waiting) return;
+
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  };
 
   return (
     <div style={{
@@ -56,6 +91,60 @@ export default function App() {
       paddingTop: 'env(safe-area-inset-top, 0px)',
       paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))'
     }}>
+      {isUpdating && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(10, 14, 22, 0.78)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: 'var(--card)',
+            border: '1px solid var(--border)',
+            borderRadius: 16,
+            padding: '18px 20px',
+            textAlign: 'center',
+            maxWidth: 260,
+            width: '80%'
+          }}>
+            <div style={{
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              border: '3px solid rgba(124, 58, 237, 0.2)',
+              borderTopColor: 'var(--accent)',
+              margin: '0 auto 12px',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>Atualizando app...</p>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--muted)' }}>
+              Sincronizando a versão mais recente.
+            </p>
+            <button
+              type="button"
+              onClick={applyServiceWorkerUpdate}
+              style={{
+                marginTop: 14,
+                width: '100%',
+                border: 'none',
+                borderRadius: 10,
+                padding: '10px 12px',
+                background: 'var(--accent)',
+                color: '#fff',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Atualizar agora
+            </button>
+          </div>
+        </div>
+      )}
+
       {user && <Header />}
 
       <Routes>
