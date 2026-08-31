@@ -104,11 +104,15 @@ const persistSession = (token, user, rememberDevice = false, offlineMode = false
   setStorageValue(OFFLINE_MODE_KEY, String(offlineMode));
 };
 
-export const clearSession = () => {
+const clearSessionData = () => {
   removeStorageValue('token');
   removeStorageValue('user');
   removeStorageValue(SESSION_KEY);
   removeStorageValue('session');
+};
+
+export const clearSession = () => {
+  clearSessionData();
   removeStorageValue(REMEMBER_DEVICE_KEY);
   removeStorageValue(OFFLINE_MODE_KEY);
 };
@@ -272,6 +276,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password, rememberDevice = false, offlineMode = false) => {
+    clearSessionData();
+    setUser(null);
+
     const { data } = await api.post('/auth/login', { email, password });
     const userData = data.user || data;
     persistSession(data.token, userData, rememberDevice, offlineMode);
@@ -281,6 +288,9 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (name, email, password, rememberDevice = false, offlineMode = false) => {
+    clearSessionData();
+    setUser(null);
+
     const { data } = await api.post('/auth/register', { name, email, password });
     const userData = data.user || data;
     persistSession(data.token, userData, rememberDevice, offlineMode);
