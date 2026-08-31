@@ -4,12 +4,13 @@ export default function InstallPwaPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [visible, setVisible] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const offlineEnabled = localStorage.getItem('offlineMode') === 'true';
 
   useEffect(() => {
     const checkStandalone = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       setIsStandalone(standalone);
-      
+
       if (!standalone) {
         const dismissed = localStorage.getItem('pwaPromptDismissed');
         if (dismissed) {
@@ -56,8 +57,8 @@ export default function InstallPwaPrompt() {
 
     const isApple = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const msg = isApple
-      ? 'No Safari, use o botão de Compartilhar e escolha “Adicionar à Tela de Início”.'
-      : 'No navegador, use o menu de opções e escolha “Instalar app” ou “Adicionar à tela inicial”.';
+      ? 'No Safari, use o botão de Compartilhar e escolha “Adicionar à Tela de Início”. Isso ativa o acesso offline do app.'
+      : 'No navegador, use o menu de opções e escolha “Instalar app” ou “Adicionar à tela inicial”. Isso ativa o acesso offline do app.';
 
     alert(msg);
   };
@@ -82,8 +83,14 @@ export default function InstallPwaPrompt() {
       boxShadow: '0 10px 30px rgba(0,0,0,0.25)'
     }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: 13 }}>Atalho do app não criado</div>
-        <div style={{ fontSize: 11, opacity: 0.9 }}>Instale para entrar mais rápido no celular.</div>
+        <div style={{ fontWeight: 700, fontSize: 13 }}>
+          {offlineEnabled ? 'Acesso offline pronto' : 'Atalho do app não criado'}
+        </div>
+        <div style={{ fontSize: 11, opacity: 0.9 }}>
+          {offlineEnabled
+            ? 'Instale o atalho da tela inicial para ativar o app em modo offline.'
+            : 'Instale para entrar mais rápido no celular e usar o app offline.'}
+        </div>
       </div>
       <button
         type="button"

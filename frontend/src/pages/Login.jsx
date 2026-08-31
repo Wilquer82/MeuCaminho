@@ -197,6 +197,18 @@ export default function Login() {
           />
           Usar o app em modo offline
         </label>
+        <div style={{
+          background: 'rgba(16, 185, 129, 0.08)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          borderRadius: 10,
+          padding: '8px 10px',
+          marginBottom: 16,
+          color: 'var(--muted)',
+          fontSize: 11,
+          lineHeight: 1.5
+        }}>
+          O modo offline funciona melhor quando o app é instalado como atalho PWA na tela inicial.
+        </div>
 
         <button
           type="submit"

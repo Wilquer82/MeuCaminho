@@ -396,6 +396,19 @@ export default function Bible() {
         </div>
       )}
 
+      <div style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 12,
+        padding: '10px 12px',
+        marginBottom: 16,
+        color: 'var(--muted)',
+        fontSize: 11,
+        lineHeight: 1.5
+      }}>
+        Favoritos ficam salvos no dispositivo e permanecem disponíveis mesmo ao reiniciar o app.
+      </div>
+
       {favorites.length > 0 && (
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 12, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
