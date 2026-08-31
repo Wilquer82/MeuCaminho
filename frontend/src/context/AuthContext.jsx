@@ -229,19 +229,12 @@ export const sanitizeStoredAuth = () => {
   return foundInvalidData;
 };
 
-if (typeof window !== 'undefined') {
-  const shouldSanitize = !sessionStorage.getItem('authSanitized');
-  if (shouldSanitize) {
-    const cleaned = sanitizeStoredAuth();
-    sessionStorage.setItem('authSanitized', '1');
-    if (cleaned) {
-      window.location.reload();
-    }
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const session = readStoredSession();
+    return session?.user || null;
+  });
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
 
@@ -272,6 +265,7 @@ export function AuthProvider({ children }) {
     }
 
     restoreSession();
+
     const handleAuthChange = () => restoreSession();
     window.addEventListener('auth:changed', handleAuthChange);
     return () => window.removeEventListener('auth:changed', handleAuthChange);
