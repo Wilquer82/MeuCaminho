@@ -438,42 +438,8 @@ export default function Bible() {
         fontSize: 11,
         lineHeight: 1.5
       }}>
-        Favoritos ficam salvos no dispositivo e permanecem disponíveis mesmo ao reiniciar o app.
+        Versículos marcados ficam destacados em amarelo para facilitar a releitura.
       </div>
-
-      {favorites.length > 0 && (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 12, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, margin: 0 }}>Favoritos</p>
-            <span style={{ fontSize: 11, color: 'var(--muted)' }}>{favorites.length}</span>
-          </div>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {favorites.slice(0, 3).map(item => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => {
-                  setBookId(item.bookId);
-                  setChapter(item.chapter);
-                  setTranslation(item.translation);
-                }}
-                style={{
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  background: 'var(--bg)',
-                  textAlign: 'left',
-                  padding: '8px 10px',
-                  color: 'var(--text)',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 2 }}>{item.bookName} {item.chapter}:{item.verse}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{item.text.slice(0, 80)}{item.text.length > 80 ? '...' : ''}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {loadingChapter ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)' }}>Carregando capítulo...</div>
@@ -499,29 +465,31 @@ export default function Bible() {
                       <sup style={{ color: 'var(--accent)', fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: 700 }}>{verse.verse}</sup>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontFamily: 'Georgia, serif', fontSize: 16, lineHeight: 1.65, margin: 0, background: isFavorite ? 'rgba(245, 158, 11, .12)' : 'transparent', borderRadius: 8, padding: isFavorite ? '4px 8px' : '0' }}>
+                      <p
+                        onClick={() => toggleFavorite(verse)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            toggleFavorite(verse);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        style={{
+                          fontFamily: 'Georgia, serif',
+                          fontSize: 16,
+                          lineHeight: 1.65,
+                          margin: 0,
+                          background: isFavorite ? 'rgba(245, 158, 11, .22)' : 'transparent',
+                          borderRadius: 8,
+                          padding: isFavorite ? '4px 8px' : '0',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
                         {verse.text}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleFavorite(verse)}
-                      aria-label={isFavorite ? 'Remover favorito' : 'Adicionar favorito'}
-                      style={{
-                        border: '1px solid var(--border)',
-                        background: isFavorite ? '#fbbf24' : 'var(--card)',
-                        borderRadius: 8,
-                        width: 32,
-                        height: 32,
-                        fontSize: 16,
-                        cursor: 'pointer',
-                        color: isFavorite ? '#1f2937' : 'var(--accent2)',
-                        flexShrink: 0,
-                        marginTop: 2
-                      }}
-                    >
-                      {isFavorite ? '★' : '☆'}
-                    </button>
                   </div>
                 );
               })}

@@ -11,6 +11,7 @@ export default function Profile() {
   const [readingStats, setReadingStats] = useState({ totalChaptersRead: 0, readingXp: 0 });
   const [bibleVersion, setBibleVersion] = useState(() => localStorage.getItem('bibleTranslation') || 'nvi');
   const [bibleVersions, setBibleVersions] = useState([]);
+  const [savedReadings, setSavedReadings] = useState([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('readingReminderEnabled') === 'true');
 
   async function loadPublicTranslations() {
@@ -82,6 +83,26 @@ export default function Profile() {
       .catch(() => {});
 
     loadPublicTranslations().then(setBibleVersions);
+
+    const syncSavedReadings = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('meucaminho_bible_favorites') || '[]');
+        const sorted = [...stored].sort((a, b) => {
+          if (a.bookName === b.bookName) {
+            if (a.chapter === b.chapter) return a.verse - b.verse;
+            return a.chapter - b.chapter;
+          }
+          return a.bookName.localeCompare(b.bookName, 'pt-BR');
+        });
+        setSavedReadings(sorted);
+      } catch {
+        setSavedReadings([]);
+      }
+    };
+
+    syncSavedReadings();
+    window.addEventListener('storage', syncSavedReadings);
+    return () => window.removeEventListener('storage', syncSavedReadings);
   }, []);
 
   useEffect(() => {
@@ -203,6 +224,50 @@ export default function Profile() {
           )}
         </div>
       )}
+
+      <div style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 20
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Minhas leituras salvas</h3>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>{savedReadings.length}</span>
+        </div>
+
+        {savedReadings.length === 0 ? (
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
+            Nenhum versículo salvo ainda. Marque um texto na Bíblia para guardar sua leitura.
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {savedReadings.map(item => (
+              <Link
+                key={item.key}
+                to={`/bible?book=${item.bookId}&chapter=${item.chapter}`}
+                style={{
+                  display: 'block',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                  textDecoration: 'none',
+                  color: 'var(--text)'
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
+                  {item.bookName} {item.chapter}:{item.verse}
+                </div>
+                <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>
+                  {item.text.length > 110 ? `${item.text.slice(0, 110)}...` : item.text}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Conquistas */}
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>Conquistas</h3>
