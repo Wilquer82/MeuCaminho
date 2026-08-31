@@ -3,6 +3,7 @@ import api from '../services/api';
 
 const SESSION_KEY = 'authSession';
 const REMEMBER_DEVICE_KEY = 'rememberDevice';
+const OFFLINE_MODE_KEY = 'offlineMode';
 const AuthContext = createContext();
 
 const getStorageBackends = () => {
@@ -81,8 +82,8 @@ const readStoredSession = () => {
   return null;
 };
 
-const persistSession = (token, user, rememberDevice = false) => {
-  const session = { token, user, rememberDevice };
+const persistSession = (token, user, rememberDevice = false, offlineMode = false) => {
+  const session = { token, user, rememberDevice, offlineMode };
 
   clearSession();
 
@@ -99,6 +100,7 @@ const persistSession = (token, user, rememberDevice = false) => {
   }
 
   setStorageValue(REMEMBER_DEVICE_KEY, String(rememberDevice));
+  setStorageValue(OFFLINE_MODE_KEY, String(offlineMode));
 };
 
 export const clearSession = () => {
@@ -107,6 +109,7 @@ export const clearSession = () => {
   removeStorageValue(SESSION_KEY);
   removeStorageValue('session');
   removeStorageValue(REMEMBER_DEVICE_KEY);
+  removeStorageValue(OFFLINE_MODE_KEY);
 };
 
 const isValidUserPayload = (value) => {
@@ -253,19 +256,19 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:changed', handleAuthChange);
   }, []);
 
-  const login = async (email, password, rememberDevice = false) => {
+  const login = async (email, password, rememberDevice = false, offlineMode = false) => {
     const { data } = await api.post('/auth/login', { email, password });
     const userData = data.user || data;
-    persistSession(data.token, userData, rememberDevice);
+    persistSession(data.token, userData, rememberDevice, offlineMode);
     setUser(userData);
     window.dispatchEvent(new Event('auth:changed'));
     return data;
   };
 
-  const register = async (name, email, password, rememberDevice = false) => {
+  const register = async (name, email, password, rememberDevice = false, offlineMode = false) => {
     const { data } = await api.post('/auth/register', { name, email, password });
     const userData = data.user || data;
-    persistSession(data.token, userData, rememberDevice);
+    persistSession(data.token, userData, rememberDevice, offlineMode);
     setUser(userData);
     window.dispatchEvent(new Event('auth:changed'));
     return data;

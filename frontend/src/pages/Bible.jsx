@@ -6,6 +6,7 @@ import api from '../services/api';
 const CACHE_KEY = 'meucaminho_bible_cache';
 const VERSION_CACHE_KEY = 'meucaminho_bible_version_cache';
 const FAVORITES_KEY = 'meucaminho_bible_favorites';
+const OFFLINE_MODE_KEY = 'offlineMode';
 
 function getCachedChapterCache() {
   try {
@@ -81,6 +82,7 @@ export default function Bible() {
   const [versionOfflineSaved, setVersionOfflineSaved] = useState(false);
   const [savingVersion, setSavingVersion] = useState(false);
   const [favorites, setFavorites] = useState(() => getFavorites());
+  const [offlineModeEnabled, setOfflineModeEnabled] = useState(() => localStorage.getItem(OFFLINE_MODE_KEY) === 'true');
 
   async function loadPublicBooks() {
     const response = await fetch('https://api.midvash.com/v1/books');
@@ -102,6 +104,10 @@ export default function Bible() {
   useEffect(() => {
     localStorage.setItem('bibleTranslation', translation);
   }, [translation]);
+
+  useEffect(() => {
+    setOfflineModeEnabled(localStorage.getItem(OFFLINE_MODE_KEY) === 'true');
+  }, [translation, bookId, chapter]);
 
   useEffect(() => {
     Promise.all([
@@ -140,6 +146,7 @@ export default function Bible() {
 
   const selectedBook = books.find(book => book.id === bookId);
   const selectedBookIndex = books.findIndex(book => book.id === bookId);
+  const downloadedVersions = Object.keys(getVersionCache());
 
   function goToNextChapter() {
     if (!selectedBook) return;
@@ -330,7 +337,14 @@ export default function Bible() {
           {books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}
         </select>
         <select value={translation} onChange={event => setTranslation(event.target.value)} style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
-          {translations.map(version => <option key={version.id} value={version.id}>{version.name} ({version.language})</option>)}
+          {translations.map(version => {
+            const isAvailableOffline = downloadedVersions.includes(version.id);
+            return (
+              <option key={version.id} value={version.id}>
+                {version.name} ({version.language}){isAvailableOffline ? ' • Offline' : ''}
+              </option>
+            );
+          })}
         </select>
         <div style={{ display: 'flex', gap: 8, gridColumn: '1 / -1' }}>
           <select value={chapter} onChange={event => setChapter(Number(event.target.value))} style={{ ...fieldStyle, flex: 1 }}>
@@ -364,13 +378,23 @@ export default function Bible() {
           style={{
             ...buttonStyle,
             marginTop: 0,
-            background: versionOfflineSaved ? '#6b7280' : '#0f766e',
+            background: versionOfflineSaved ? '#1f7a3d' : '#0f766e',
             opacity: savingVersion ? 0.7 : 1
           }}
         >
-          {savingVersion ? 'Salvando versão...' : versionOfflineSaved ? 'Remover versão offline' : 'Salvar versão completa offline'}
+          {savingVersion
+            ? 'Salvando versão...'
+            : versionOfflineSaved
+              ? '✓ Versão disponível offline • remover'
+              : 'Salvar versão completa offline'}
         </button>
       </div>
+
+      {offlineModeEnabled && (
+        <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 12, padding: '10px 12px', marginBottom: 16, color: 'var(--success)', fontSize: 12, fontWeight: 700 }}>
+          Modo offline ativo: o app pode usar conteúdo salvo localmente.
+        </div>
+      )}
 
       {favorites.length > 0 && (
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 12, marginBottom: 16 }}>

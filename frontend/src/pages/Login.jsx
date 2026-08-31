@@ -6,6 +6,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberDevice, setRememberDevice] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const submitLockRef = useRef(false);
@@ -28,7 +29,7 @@ export default function Login() {
     submitLockRef.current = true;
 
     try {
-      await login(normalizedEmail, password, rememberDevice);
+      await login(normalizedEmail, password, rememberDevice, offlineMode);
       navigate('/', { replace: true });
     } catch (err) {
       const status = err.response?.status;
@@ -139,7 +140,7 @@ export default function Login() {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          marginBottom: 20,
+          marginBottom: 12,
           fontSize: 13,
           color: 'var(--muted)',
           cursor: 'pointer'
@@ -151,6 +152,24 @@ export default function Login() {
             style={{ width: 16, height: 16, accentColor: 'var(--accent)' }}
           />
           Não pedir login neste dispositivo
+        </label>
+
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 20,
+          fontSize: 13,
+          color: 'var(--muted)',
+          cursor: 'pointer'
+        }}>
+          <input
+            type="checkbox"
+            checked={offlineMode}
+            onChange={(e) => setOfflineMode(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: 'var(--accent)' }}
+          />
+          Usar o app em modo offline
         </label>
 
         <button
