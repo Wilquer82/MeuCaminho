@@ -20,7 +20,7 @@ export default function StreakCalendar() {
       .catch(() => setCompletedDays([]));
   }, [year, month]);
 
-  const frozenDays = [14]; // Exemplo
+  const frozenDays = [];
   const missedDays = [];
 
   const weekdays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -143,7 +143,7 @@ export default function StreakCalendar() {
         }}>
           {days.map((day, i) => (
             <div key={i} style={getDayStyle(day)}>
-              {day === 14 && frozenDays.includes(14) ? '❄' : day}
+              {frozenDays.includes(day) ? '❄' : day}
             </div>
           ))}
         </div>
