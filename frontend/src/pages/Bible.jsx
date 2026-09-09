@@ -155,6 +155,7 @@ export default function Bible() {
   const [downloadedVersions, setDownloadedVersions] = useState([]);
   const [favorites, setFavorites] = useState(() => getFavorites());
   const [offlineModeEnabled, setOfflineModeEnabled] = useState(() => localStorage.getItem(OFFLINE_MODE_KEY) === 'true');
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -486,12 +487,14 @@ export default function Bible() {
     if (!books.length || savingVersion) return;
 
     setSavingVersion(true);
+    setDownloadProgress(0);
     setMessage('Salvando versão da Bíblia para uso offline...');
 
     try {
       const versionCache = await getVersionCache();
       const fullVersion = { savedAt: new Date().toISOString(), books: {} };
       let savedChapters = 0;
+      const totalChapters = books.reduce((sum, book) => sum + book.chapters, 0);
 
       for (const book of books) {
         fullVersion.books[book.id] = {};
@@ -518,6 +521,8 @@ export default function Bible() {
               // Ignora capítulos indisponíveis para manter o restante da versão salva.
             }
           }
+          // Update progress
+          setDownloadProgress(Math.round((savedChapters / totalChapters) * 100));
         }
       }
 
@@ -526,9 +531,11 @@ export default function Bible() {
       await setVersionCache(versionCache);
       setDownloadedVersions(Object.keys(versionCache));
       setVersionOfflineSaved(true);
+      setDownloadProgress(100);
       setMessage(`Versão ${translation.toUpperCase()} salva para acesso offline.`);
     } catch {
       setMessage('Não foi possível baixar esta tradução. Verifique a conexão e tente novamente.');
+      setDownloadProgress(0);
     } finally {
       setSavingVersion(false);
     }
@@ -598,8 +605,40 @@ export default function Bible() {
       )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button type="button" onClick={saveFullTranslationOffline} disabled={savingVersion} style={{ ...buttonStyle, marginTop: 0, opacity: savingVersion ? .6 : 1 }}>
-          {savingVersion ? 'Baixando tradução...' : currentVersionIsOffline ? 'Disponível Offline' : 'Baixar tradução para offline'}
+        <button
+          type="button"
+          onClick={saveFullTranslationOffline}
+          disabled={savingVersion}
+          style={{
+            ...buttonStyle,
+            marginTop: 0,
+            opacity: savingVersion ? .6 : 1,
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {savingVersion ? (
+            <>
+              <span style={{ position: 'relative', zIndex: 1 }}>
+                Baixando tradução... {downloadProgress}%
+              </span>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  height: '100%',
+                  width: `${downloadProgress}%`,
+                  background: 'rgba(255,255,255,0.3)',
+                  transition: 'width 0.3s ease'
+                }}
+              />
+            </>
+          ) : currentVersionIsOffline ? (
+            'Disponível Offline'
+          ) : (
+            'Baixar tradução para offline'
+          )}
         </button>
         {currentVersionIsOffline && (
           <button type="button" onClick={removeFullTranslationOffline} disabled={savingVersion} style={{ ...buttonStyle, marginTop: 0, background: 'var(--muted)', flex: '0 0 100px' }}>
