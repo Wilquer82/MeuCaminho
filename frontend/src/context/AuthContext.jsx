@@ -1,10 +1,12 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
 
 const SESSION_KEY = 'authSession';
 const REMEMBER_DEVICE_KEY = 'rememberDevice';
 const OFFLINE_MODE_KEY = 'offlineMode';
-const AUTH_STORAGE_KEYS = ['token', 'user', SESSION_KEY, 'session', REMEMBER_DEVICE_KEY, OFFLINE_MODE_KEY];
+const DEVICE_ID_KEY = 'deviceId';
+const LAST_SYNC_KEY = 'lastSync';
+const AUTH_STORAGE_KEYS = ['token', 'user', SESSION_KEY, 'session', REMEMBER_DEVICE_KEY, OFFLINE_MODE_KEY, DEVICE_ID_KEY];
 const AuthContext = createContext();
 
 const getStorageBackends = () => {
@@ -48,6 +50,15 @@ const removeStorageValue = (key) => {
   }
 };
 
+const getOrCreateDeviceId = () => {
+  let deviceId = getStorageValue(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    setStorageValue(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
+};
+
 const readStoredSession = () => {
   const rememberDevice = getStorageValue(REMEMBER_DEVICE_KEY) === 'true';
   const storageOrder = rememberDevice ? [window.localStorage, window.sessionStorage] : [window.sessionStorage, window.localStorage];
@@ -84,9 +95,9 @@ const readStoredSession = () => {
 };
 
 const persistSession = (token, user, rememberDevice = false, offlineMode = false) => {
-  const session = { token, user, rememberDevice, offlineMode };
+  const session = { token, user, rememberDevice, offlineMode, deviceId: getOrCreateDeviceId() };
 
-  clearSession();
+  clearSessionData();
 
   if (rememberDevice) {
     window.localStorage.setItem('token', token);
@@ -102,6 +113,7 @@ const persistSession = (token, user, rememberDevice = false, offlineMode = false
 
   setStorageValue(REMEMBER_DEVICE_KEY, String(rememberDevice));
   setStorageValue(OFFLINE_MODE_KEY, String(offlineMode));
+  setStorageValue(DEVICE_ID_KEY, session.deviceId);
 };
 
 const clearSessionData = () => {
@@ -176,6 +188,7 @@ export const sanitizeStoredAuth = () => {
         const isTokenKey = key === 'token';
         const isRememberKey = key === REMEMBER_DEVICE_KEY;
         const isOfflineKey = key === OFFLINE_MODE_KEY;
+        const isDeviceKey = key === DEVICE_ID_KEY;
 
         if (isSessionKey) {
           try {
@@ -219,6 +232,13 @@ export const sanitizeStoredAuth = () => {
             foundInvalidData = true;
           }
         }
+
+        if (isDeviceKey) {
+          if (!raw || raw.length < 10) {
+            storage.removeItem(key);
+            foundInvalidData = true;
+          }
+        }
       } catch {
         // Ignora storage indisponível.
       }
@@ -241,8 +261,12 @@ export function AuthProvider({ children }) {
   });
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' && navigator.onLine);
+  const [syncing, setSyncing] = useState(false);
+  const syncTimeoutRef = useRef(null);
+  const wakeLockRef = useRef(null);
 
-  const restoreSession = () => {
+  const restoreSession = useCallback(() => {
     const session = readStoredSession();
 
     if (!session) {
@@ -253,7 +277,81 @@ export function AuthProvider({ children }) {
 
     setUser(session.user);
     setLoading(false);
+  }, []);
+
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        wakeLockRef.current.addEventListener('release', () => {
+          wakeLockRef.current = null;
+        });
+      }
+    } catch {
+      // Wake Lock não disponível ou negado
+    }
   };
+
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  };
+
+  const silentRefresh = useCallback(async () => {
+    const session = readStoredSession();
+    if (!session?.token) return false;
+
+    try {
+      const { data } = await api.post('/auth/refresh', {}, {
+        headers: { Authorization: `Bearer ${session.token}` }
+      });
+      
+      const userData = data.user || session.user;
+      const rememberDevice = getStorageValue(REMEMBER_DEVICE_KEY) === 'true';
+      const offlineMode = getStorageValue(OFFLINE_MODE_KEY) === 'true';
+      persistSession(data.token || session.token, userData, rememberDevice, offlineMode);
+      setUser(userData);
+      setStorageValue(LAST_SYNC_KEY, Date.now().toString());
+      return true;
+    } catch {
+      // Token expirado ou inválido - mantém sessão local para modo offline
+      return false;
+    }
+  }, []);
+
+  const syncWhenOnline = useCallback(async () => {
+    if (!isOnline || syncing) return;
+    
+    const session = readStoredSession();
+    if (!session?.token) return;
+
+    setSyncing(true);
+    
+    try {
+      // Tenta refresh silencioso
+      await silentRefresh();
+      
+      // Sincroniza progresso do usuário (XP, streak, lições)
+      const { data } = await api.get('/auth/me', {
+        headers: { Authorization: `Bearer ${session.token}` }
+      });
+      
+      if (data) {
+        const rememberDevice = getStorageValue(REMEMBER_DEVICE_KEY) === 'true';
+        const offlineMode = getStorageValue(OFFLINE_MODE_KEY) === 'true';
+        persistSession(session.token, data, rememberDevice, offlineMode);
+        setUser(data);
+      }
+      
+      setStorageValue(LAST_SYNC_KEY, Date.now().toString());
+    } catch {
+      // Falhou - mantém dados locais
+    } finally {
+      setSyncing(false);
+    }
+  }, [isOnline, syncing, silentRefresh]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -273,7 +371,36 @@ export function AuthProvider({ children }) {
     const handleAuthChange = () => restoreSession();
     window.addEventListener('auth:changed', handleAuthChange);
     return () => window.removeEventListener('auth:changed', handleAuthChange);
-  }, []);
+  }, [restoreSession]);
+
+  // Online/offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      // Agenda sync com debounce
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(syncWhenOnline, 2000);
+    };
+    
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [syncWhenOnline]);
+
+  // Sync inicial quando online
+  useEffect(() => {
+    if (isOnline && user) {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(syncWhenOnline, 3000);
+    }
+  }, [isOnline, user, syncWhenOnline]);
 
   const login = async (email, password, rememberDevice = false, offlineMode = false) => {
     clearSessionData();
@@ -330,7 +457,13 @@ export function AuthProvider({ children }) {
       theme,
       setTheme,
       loading,
-      isAuthenticated: !!user
+      isAuthenticated: !!user,
+      isOnline,
+      syncing,
+      silentRefresh,
+      syncWhenOnline,
+      requestWakeLock,
+      releaseWakeLock
     }}>
       {children}
     </AuthContext.Provider>

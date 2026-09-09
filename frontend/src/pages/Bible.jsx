@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -9,6 +9,8 @@ const FAVORITES_KEY = 'meucaminho_bible_favorites';
 const OFFLINE_MODE_KEY = 'offlineMode';
 const VERSION_DB_NAME = 'meucaminho_bible_offline';
 const VERSION_DB_STORE = 'translations';
+const DOWNLOAD_PROGRESS_STORE = 'downloadProgress';
+const DOWNLOAD_PROGRESS_KEY = 'bible_download_progress';
 
 const OLD_TESTAMENT_BOOKS = new Set([
   'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
@@ -61,8 +63,16 @@ function openVersionDatabase() {
       return;
     }
 
-    const request = window.indexedDB.open(VERSION_DB_NAME, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore(VERSION_DB_STORE);
+    const request = window.indexedDB.open(VERSION_DB_NAME, 2);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(VERSION_DB_STORE)) {
+        db.createObjectStore(VERSION_DB_STORE);
+      }
+      if (!db.objectStoreNames.contains(DOWNLOAD_PROGRESS_STORE)) {
+        db.createObjectStore(DOWNLOAD_PROGRESS_STORE);
+      }
+    };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -103,6 +113,56 @@ async function setVersionCache(cache) {
   }
 }
 
+async function getDownloadProgress(translation) {
+  try {
+    const database = await openVersionDatabase();
+    const progress = await new Promise((resolve, reject) => {
+      const request = database.transaction(DOWNLOAD_PROGRESS_STORE, 'readonly').objectStore(DOWNLOAD_PROGRESS_STORE).get(translation);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    return progress;
+  } catch {
+    try {
+      const stored = localStorage.getItem(DOWNLOAD_PROGRESS_KEY + '_' + translation);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function setDownloadProgress(translation, progress) {
+  try {
+    const database = await openVersionDatabase();
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(DOWNLOAD_PROGRESS_STORE, 'readwrite');
+      transaction.objectStore(DOWNLOAD_PROGRESS_STORE).put(progress, translation);
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+  } catch {
+    localStorage.setItem(DOWNLOAD_PROGRESS_KEY + '_' + translation, JSON.stringify(progress));
+  }
+}
+
+async function clearDownloadProgress(translation) {
+  try {
+    const database = await openVersionDatabase();
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(DOWNLOAD_PROGRESS_STORE, 'readwrite');
+      transaction.objectStore(DOWNLOAD_PROGRESS_STORE).delete(translation);
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+  } catch {
+    localStorage.removeItem(DOWNLOAD_PROGRESS_KEY + '_' + translation);
+  }
+}
+
 function getFavorites() {
   try {
     return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
@@ -137,7 +197,7 @@ function normalizeChapterData(bookName, selectedBookId, selectedChapter, transla
 
 export default function Bible() {
   const [searchParams] = useSearchParams();
-  const { updateUser } = useAuth();
+  const { updateUser, requestWakeLock, releaseWakeLock } = useAuth();
   const [books, setBooks] = useState([]);
   const [translations, setTranslations] = useState([]);
   const [translation, setTranslation] = useState(() => localStorage.getItem('bibleTranslation') || 'nvi');
@@ -156,11 +216,22 @@ export default function Bible() {
   const [favorites, setFavorites] = useState(() => getFavorites());
   const [offlineModeEnabled, setOfflineModeEnabled] = useState(() => localStorage.getItem(OFFLINE_MODE_KEY) === 'true');
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [hasPartialDownload, setHasPartialDownload] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState('all');
   const [showSearch, setShowSearch] = useState(false);
+
+  // Verifica se há download parcial salvo ao mudar tradução
+  useEffect(() => {
+    checkPartialDownload();
+  }, [translation]);
+
+  async function checkPartialDownload() {
+    const progress = await getDownloadProgress(translation);
+    setHasPartialDownload(!!(progress?.completedChapters?.length));
+  }
 
   async function performSearch(query) {
     if (!query.trim() || query.length < 2) {
@@ -487,24 +558,45 @@ export default function Bible() {
     if (!books.length || savingVersion) return;
 
     setSavingVersion(true);
-    setDownloadProgress(0);
+    setHasPartialDownload(false);
     setMessage('Salvando versão da Bíblia para uso offline...');
+    
+    // Solicita wake lock para manter download ativo em background
+    await requestWakeLock();
 
     try {
       const versionCache = await getVersionCache();
-      const fullVersion = { savedAt: new Date().toISOString(), books: {} };
-      let savedChapters = 0;
+      const existingVersion = versionCache[translation] || { savedAt: new Date().toISOString(), books: {} };
+      const fullVersion = { ...existingVersion, savedAt: new Date().toISOString(), books: { ...existingVersion.books } };
+      
+      // Carrega progresso salvo
+      const savedProgress = await getDownloadProgress(translation);
+      const completedChapters = new Set(savedProgress?.completedChapters || []);
+      let savedChapters = completedChapters.size;
       const totalChapters = books.reduce((sum, book) => sum + book.chapters, 0);
+      
+      // Atualiza progresso inicial
+      setDownloadProgress(totalChapters > 0 ? Math.round((savedChapters / totalChapters) * 100) : 0);
 
       for (const book of books) {
-        fullVersion.books[book.id] = {};
+        if (!fullVersion.books[book.id]) {
+          fullVersion.books[book.id] = {};
+        }
 
         for (let chapterNumber = 1; chapterNumber <= book.chapters; chapterNumber += 1) {
+          const chapterKey = `${book.id}:${chapterNumber}`;
+          
+          // Pula se já foi baixado
+          if (completedChapters.has(chapterKey)) {
+            continue;
+          }
+
           try {
             const response = await api.get(`/bible/${book.id}/${chapterNumber}`, { params: { translation } });
             if (Array.isArray(response.data?.verses) && response.data.verses.length) {
               fullVersion.books[book.id][chapterNumber] = { ...response.data, storedAt: new Date().toISOString() };
               savedChapters += 1;
+              completedChapters.add(chapterKey);
             }
           } catch {
             try {
@@ -515,29 +607,43 @@ export default function Bible() {
                 if (normalized.verses.length) {
                   fullVersion.books[book.id][chapterNumber] = normalized;
                   savedChapters += 1;
+                  completedChapters.add(chapterKey);
                 }
               }
             } catch {
-              // Ignora capítulos indisponíveis para manter o restante da versão salva.
+              // Ignora capítulos indisponíveis
             }
           }
-          // Update progress
-          setDownloadProgress(Math.round((savedChapters / totalChapters) * 100));
+          
+          // Salva progresso a cada capítulo
+          await setDownloadProgress(translation, {
+            completedChapters: Array.from(completedChapters),
+            lastBookId: book.id,
+            lastChapter: chapterNumber,
+            updatedAt: new Date().toISOString()
+          });
+          
+          // Update progress UI
+          setDownloadProgress(totalChapters > 0 ? Math.round((savedChapters / totalChapters) * 100) : 0);
         }
       }
 
-      if (!savedChapters) throw new Error('Nenhum capítulo foi baixado');
+      if (!savedChapters && completedChapters.size === 0) throw new Error('Nenhum capítulo foi baixado');
+      
       versionCache[translation] = fullVersion;
       await setVersionCache(versionCache);
+      await clearDownloadProgress(translation);
+      
       setDownloadedVersions(Object.keys(versionCache));
       setVersionOfflineSaved(true);
       setDownloadProgress(100);
       setMessage(`Versão ${translation.toUpperCase()} salva para acesso offline.`);
-    } catch {
+    } catch (error) {
       setMessage('Não foi possível baixar esta tradução. Verifique a conexão e tente novamente.');
       setDownloadProgress(0);
     } finally {
       setSavingVersion(false);
+      releaseWakeLock();
     }
   }
 
@@ -605,16 +711,31 @@ export default function Bible() {
       )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {hasPartialDownload && !currentVersionIsOffline && !savingVersion && (
+          <button
+            type="button"
+            onClick={saveFullTranslationOffline}
+            style={{
+              ...buttonStyle,
+              marginTop: 0,
+              background: 'var(--accent2)',
+              flex: 1
+            }}
+          >
+            Continuar download ({downloadProgress}%)
+          </button>
+        )}
         <button
           type="button"
           onClick={saveFullTranslationOffline}
-          disabled={savingVersion}
+          disabled={savingVersion || (hasPartialDownload && !currentVersionIsOffline)}
           style={{
             ...buttonStyle,
             marginTop: 0,
             opacity: savingVersion ? .6 : 1,
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            flex: hasPartialDownload && !currentVersionIsOffline ? '0 0 calc(100% - 160px)' : 1
           }}
         >
           {savingVersion ? (
@@ -636,6 +757,8 @@ export default function Bible() {
             </>
           ) : currentVersionIsOffline ? (
             'Disponível Offline'
+          ) : hasPartialDownload ? (
+            'Retomar download'
           ) : (
             'Baixar tradução para offline'
           )}
