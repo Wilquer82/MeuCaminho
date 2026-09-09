@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -9,6 +9,30 @@ const FAVORITES_KEY = 'meucaminho_bible_favorites';
 const OFFLINE_MODE_KEY = 'offlineMode';
 const VERSION_DB_NAME = 'meucaminho_bible_offline';
 const VERSION_DB_STORE = 'translations';
+
+const OLD_TESTAMENT_BOOKS = new Set([
+  'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+  'joshua', 'judges', 'ruth', '1-samuel', '2-samuel', '1-kings', '2-kings',
+  '1-chronicles', '2-chronicles', 'ezra', 'nehemiah', 'esther', 'job',
+  'psalms', 'proverbs', 'ecclesiastes', 'song-of-solomon', 'isaiah',
+  'jeremiah', 'lamentations', 'ezekiel', 'daniel', 'hosea', 'joel',
+  'amos', 'obadiah', 'jonah', 'micah', 'nahum', 'habakkuk', 'zephaniah',
+  'haggai', 'zechariah', 'malachi'
+]);
+
+const NEW_TESTAMENT_BOOKS = new Set([
+  'matthew', 'mark', 'luke', 'john', 'acts', 'romans', '1-corinthians',
+  '2-corinthians', 'galatians', 'ephesians', 'philippians', 'colossians',
+  '1-thessalonians', '2-thessalonians', '1-timothy', '2-timothy', 'titus',
+  'philemon', 'hebrews', 'james', '1-peter', '2-peter', '1-john',
+  '2-john', '3-john', 'jude', 'revelation'
+]);
+
+function getTestament(bookId) {
+  if (OLD_TESTAMENT_BOOKS.has(bookId)) return 'VT';
+  if (NEW_TESTAMENT_BOOKS.has(bookId)) return 'NT';
+  return 'VT';
+}
 
 function getCachedChapterCache() {
   try {
@@ -131,6 +155,102 @@ export default function Bible() {
   const [downloadedVersions, setDownloadedVersions] = useState([]);
   const [favorites, setFavorites] = useState(() => getFavorites());
   const [offlineModeEnabled, setOfflineModeEnabled] = useState(() => localStorage.getItem(OFFLINE_MODE_KEY) === 'true');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('all');
+  const [showSearch, setShowSearch] = useState(false);
+
+  async function performSearch(query) {
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    setMessage('');
+
+    try {
+      const versionCache = await getVersionCache();
+      const translationCache = versionCache[translation];
+      
+      let results = [];
+
+      if (translationCache && translationCache.books) {
+        // Search in offline cache
+        for (const [bookId, chapters] of Object.entries(translationCache.books)) {
+          const testament = getTestament(bookId);
+          if (searchFilter !== 'all' && searchFilter !== testament) continue;
+
+          const book = books.find(b => b.id === bookId);
+          if (!book) continue;
+
+          for (const [chapterNum, chapterData] of Object.entries(chapters)) {
+            if (!chapterData.verses) continue;
+
+            for (const verse of chapterData.verses) {
+              if (verse.text && verse.text.toLowerCase().includes(query.toLowerCase())) {
+                results.push({
+                  bookId,
+                  bookName: book.name,
+                  chapter: Number(chapterNum),
+                  verse: verse.verse,
+                  text: verse.text,
+                  testament,
+                  reference: `${book.name} ${chapterNum}:${verse.verse}`
+                });
+              }
+            }
+          }
+        }
+      } else {
+        // Fallback: search via API (limited to current book or first few books for performance)
+        setMessage('Busca offline indisponível. Baixe a tradução para buscar offline.');
+      }
+
+      // Sort by book order (testament, then book index, then chapter, then verse)
+      results.sort((a, b) => {
+        const bookA = books.find(book => book.id === a.bookId);
+        const bookB = books.find(book => book.id === b.bookId);
+        const indexA = bookA ? books.indexOf(bookA) : 999;
+        const indexB = bookB ? books.indexOf(bookB) : 999;
+        
+        if (indexA !== indexB) return indexA - indexB;
+        if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+        return a.verse - b.verse;
+      });
+
+      setSearchResults(results.slice(0, 100)); // Limit to 100 results
+    } catch (error) {
+      setMessage('Erro ao realizar busca.');
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  function handleSearchChange(event) {
+    const value = event.target.value;
+    setSearchQuery(value);
+    if (value.length >= 2) {
+      performSearch(value);
+    } else {
+      setSearchResults([]);
+    }
+  }
+
+  function handleSearchFilterChange(filter) {
+    setSearchFilter(filter);
+    if (searchQuery.length >= 2) {
+      performSearch(searchQuery);
+    }
+  }
+
+  function clearSearch() {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearch(false);
+  }
 
   async function loadPublicBooks() {
     const response = await fetch('https://api.midvash.com/v1/books');
@@ -479,7 +599,7 @@ export default function Bible() {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button type="button" onClick={saveFullTranslationOffline} disabled={savingVersion} style={{ ...buttonStyle, marginTop: 0, opacity: savingVersion ? .6 : 1 }}>
-          {savingVersion ? 'Baixando tradução...' : currentVersionIsOffline ? 'Atualizar acesso offline' : 'Baixar tradução para offline'}
+          {savingVersion ? 'Baixando tradução...' : currentVersionIsOffline ? 'Disponível Offline' : 'Baixar tradução para offline'}
         </button>
         {currentVersionIsOffline && (
           <button type="button" onClick={removeFullTranslationOffline} disabled={savingVersion} style={{ ...buttonStyle, marginTop: 0, background: 'var(--muted)', flex: '0 0 100px' }}>
@@ -499,6 +619,160 @@ export default function Bible() {
         lineHeight: 1.5
       }}>
         Versículos marcados ficam destacados em amarelo para facilitar a releitura.
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={() => setShowSearch(!showSearch)}
+          style={{
+            width: '100%',
+            border: '1px solid var(--border)',
+            borderRadius: 10,
+            padding: '12px 14px',
+            background: 'var(--card)',
+            color: 'var(--text)',
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8
+          }}
+        >
+          <span>🔍 Buscar na Bíblia</span>
+          <span style={{ fontSize: 18, transition: 'transform 0.2s', transform: showSearch ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+        </button>
+
+        {showSearch && (
+          <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                placeholder="Digite um termo para buscar (mín. 2 caracteres)"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                style={{
+                  flex: 1,
+                  padding: '12px 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  background: 'var(--card)',
+                  color: 'var(--text)',
+                  fontSize: 14
+                }}
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  style={{
+                    padding: '12px 14px',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    background: 'var(--card)',
+                    color: 'var(--muted)',
+                    fontWeight: 700,
+                    fontSize: 14,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {['all', 'VT', 'NT'].map(filter => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => handleSearchFilterChange(filter)}
+                  style={{
+                    padding: '8px 12px',
+                    border: '1px solid var(--border)',
+                    borderRadius: 999,
+                    background: searchFilter === filter ? 'var(--accent)' : 'var(--card)',
+                    color: searchFilter === filter ? '#fff' : 'var(--text)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {filter === 'all' ? 'Toda a Bíblia' : filter === 'VT' ? 'Velho Testamento' : 'Novo Testamento'}
+                </button>
+              ))}
+            </div>
+
+            {searchLoading && (
+              <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: '16px' }}>
+                Buscando...
+              </div>
+            )}
+
+            {searchResults.length > 0 && (
+              <div style={{ display: 'grid', gap: 8, maxHeight: '400px', overflowY: 'auto' }}>
+                {searchResults.map((result, index) => (
+                  <button
+                    key={`${result.bookId}-${result.chapter}-${result.verse}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      setBookId(result.bookId);
+                      setChapter(result.chapter);
+                      setShowSearch(false);
+                    }}
+                    style={{
+                      textAlign: 'left',
+                      padding: '12px 14px',
+                      border: '1px solid var(--border)',
+                      borderRadius: 10,
+                      background: 'var(--card)',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={e => e.target.style.background = 'var(--accent-soft)'}
+                    onMouseLeave={e => e.target.style.background = 'var(--card)'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        background: result.testament === 'VT' ? 'rgba(139,92,246,0.15)' : 'rgba(16,185,129,0.15)',
+                        color: result.testament === 'VT' ? 'var(--premium)' : 'var(--success)'
+                      }}>
+                        {result.testament}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{result.reference}</span>
+                    </div>
+                    <p style={{
+                      margin: 0,
+                      fontSize: 13,
+                      color: 'var(--text)',
+                      lineHeight: 1.5
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: result.text.replace(
+                        new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+                        '<mark style="background: rgba(245,158,11,0.3); padding: 0 2px; border-radius: 2px;">$1</mark>'
+                      )
+                    }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
+              <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: '16px' }}>
+                Nenhum resultado encontrado para "{searchQuery}".
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {loadingChapter ? (

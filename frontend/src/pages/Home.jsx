@@ -48,7 +48,15 @@ export default function Home() {
     try {
       setLoadingLesson(true);
       const { data } = await api.get('/lessons/today');
-      setTodayLesson(data);
+      const today = new Date().toDateString();
+      const lessonDate = new Date(data.date).toDateString();
+      
+      // Only use the lesson if it's for today
+      if (lessonDate === today) {
+        setTodayLesson(data);
+      } else {
+        setTodayLesson(null);
+      }
     } catch (err) {
       if (err.response?.status === 402) {
         triggerPaywall(err.response.data.data);

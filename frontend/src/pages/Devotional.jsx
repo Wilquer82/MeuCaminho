@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import SocialShare from '../components/Devotional/SocialShare';
 import { useAuth } from '../context/AuthContext';
@@ -8,22 +8,46 @@ export default function Devotional() {
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const { updateUser } = useAuth();
-
-  useEffect(() => {
-    loadDevotional();
-  }, []);
+  const lastDateRef = useRef(new Date().toDateString());
 
   const loadDevotional = async () => {
     try {
       const { data } = await api.get('/devotional/today');
+      const today = new Date().toDateString();
+      const devotionalDate = new Date(data.date).toDateString();
+      
+      // If the devotional is for a different day than today, don't show it as completed
+      const isToday = devotionalDate === today;
       setDevotional(data);
-      setCompleted(data.completedByUser || false);
+      setCompleted(data.completedByUser && isToday);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDevotional();
+
+    const refreshDevotional = () => {
+      const today = new Date().toDateString();
+      if (!document.hidden && today !== lastDateRef.current) {
+        lastDateRef.current = today;
+        loadDevotional();
+      } else if (!document.hidden) {
+        loadDevotional();
+      }
+    };
+
+    window.addEventListener('focus', refreshDevotional);
+    document.addEventListener('visibilitychange', refreshDevotional);
+
+    return () => {
+      window.removeEventListener('focus', refreshDevotional);
+      document.removeEventListener('visibilitychange', refreshDevotional);
+    };
+  }, []);
 
   const handleComplete = async () => {
     try {
