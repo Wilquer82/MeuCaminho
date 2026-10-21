@@ -2,44 +2,73 @@
 
 > O Duolingo da Bíblia — App gamificado de leitura bíblica com monetização, devocionais, dicas de hebraico/grego e comunidade.
 
-**Stack:** MERN (MongoDB, Express, React, Node.js)
+**Stack:** MERN (MongoDB, Express, React, Node.js) · PWA (Vite) · Capacitor (Android)
+
+---
+
+## 📌 Estado real do projeto (outubro/2026)
+
+| Aspecto | Situação |
+|---|---|
+| **Fase** | **MVP / beta em desenvolvimento** — código e telas existem; não tratar o README inteiro como “já em produção para usuários finais” |
+| **Backend** | API Express + MongoDB com rotas de auth, lições, progresso, devocional, missões, quiz, teologia, comunidade, curiosidades, assinatura (Stripe), feedback, bíblia |
+| **Frontend** | React + Vite + Tailwind/PWA; telas de login/registro, home, categorias, bíblia, devocional, streak, missões, review/quiz, teologia, vídeos, curiosidades, comunidade, premium, perfil, sobre |
+| **Monetização** | Rotas e UI de Premium/Stripe preparadas; depende de chaves reais e testes de webhook em ambiente de produção |
+| **Deploy previsto** | API no Render (`meucaminhoback.onrender.com`); front PWA; empacote Android via Capacitor |
+| **CI** | GitHub Actions: build do frontend no push/PR |
+
+**O que já está modelado no código**
+- Autenticação JWT, cadastro/login
+- Fluxo de lições, progresso, streak e calendário
+- Devocional, missões, quiz/revisão, teologia, curiosidades, comunidade
+- Paywall / planos premium e integração Stripe (checkout + webhook)
+- Feedback por e-mail (Nodemailer)
+- Seed e scripts de verificação no backend
+
+**O que ainda é visão / depende de operação**
+- Conteúdo bíblico e curadoria completos em escala de produto
+- Stripe e e-mail com credenciais de produção validadas
+- Publicação na Play Store (AAB assinado)
+- Métricas de retenção e ligas com base de usuários reais
+
+> Ao ler as seções abaixo, use esta tabela como filtro: descrevem o **produto alvo** e o que a arquitetura suporta; o estado de prontidão para o usuário final é o desta seção.
 
 ---
 
 ## 📁 Estrutura do Projeto
 
 ```
-verbovivo/
+MeuCaminho/
 ├── backend/                 # API Node.js + Express + MongoDB
-│   ├── config/              # Conexão com banco
-│   ├── models/              # Modelos Mongoose
-│   ├── routes/              # Rotas da API
-│   ├── middleware/          # Autenticação JWT + rate limit
-│   ├── utils/               # Utilitários
-│   ├── server.js            # Arquivo principal
+│   ├── config/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── utils/
+│   ├── tests/
+│   ├── server.js
+│   ├── seed.js
 │   ├── package.json
 │   └── .env.example
 │
-├── frontend/                # React + Vite
+├── frontend/                # React + Vite + PWA
 │   ├── src/
-│   │   ├── components/      # Componentes reutilizáveis
-│   │   ├── context/         # AuthContext, SubscriptionContext
-│   │   ├── pages/           # Todas as telas do app
-│   │   ├── services/        # API (axios)
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── services/
 │   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── public/
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
+│   │   └── main.jsx
+│   └── package.json
 │
+├── android/                 # Capacitor
+├── docker-compose.yml
 └── README.md
 ```
 
 ---
 
-## ⚙️ Funcionalidades Principais
+## ⚙️ Funcionalidades (visão do produto)
 
 ### 🎮 Gamificação
 - **XP e níveis** — Sistema de pontos de experiência
@@ -50,48 +79,31 @@ verbovivo/
 - **Parabenizar amigos** — +5 XP para quem parabeniza
 - **Ranking semanal** — Ligas (Bronze, Prata, Ouro)
 
-### 📚 Planos de Leitura (como "idiomas")
+### 📚 Planos de Leitura
 - Anual, Semestral, Livre
 - Categorias: Pentateuco, Juízes & Reinado, Poéticos, Profetas, Evangelhos, Cartas, Apocalipse
-- **Curso extra:** Teologia Básica (10 unidades doutrinárias)
+- **Curso extra:** Teologia Básica
 
-### 📖 Revisão com Quiz Evolutivo
-- 3 níveis: Básico (+15 XP), Intermediário (+25 XP), Avançado (+40 XP)
+### 📖 Revisão com Quiz
+- Níveis básico / intermediário / avançado com XP diferente
 
-### 💡 Curiosidades Bíblicas
-- Histórica, Cultural, Hebraico/Grego, Geográfica, Arqueológica
+### 💡 Curiosidades e vídeos
+- Curiosidades bíblicas e integração com conteúdo educacional (ex.: BibleProject)
 
-### 🎬 Vídeos do BibleProject
-- Integração com conteúdo educacional gratuito
-- Incluindo vídeos de Hebraico Bíblico e Grego Bíblico
-
-### 🔤 Dicas Linguísticas
-- **Hebraico** — Antigo Testamento (ex: YHWH Ro'i, Bereshit, Shalom)
-- **Grego Koiné** — Novo Testamento (ex: agápē, lógos)
-- **Aramaico** — Trechos específicos
-
-### 💎 Monetização (estilo Duolingo)
-| Plano | Preço | Benefícios |
+### 💎 Monetização (alvo)
+| Plano | Preço | Benefícios (planejados) |
 |---|---|---|
-| **FREE** | R$ 0 | 3 lições/dia, 2 congeladores, módulo básico |
-| **PREMIUM Mensal** | R$ 14,90/mês | Lições ilimitadas, congeladores ∞, Teologia completa, offline, sem anúncios |
-| **PREMIUM Anual** | R$ 124/ano | Tudo do mensal com **-30% de desconto** |
-| **Vitalício** | R$ 299 | Pagamento único, para sempre |
+| **FREE** | R$ 0 | Limite diário de lições, congeladores limitados |
+| **PREMIUM Mensal** | R$ 14,90/mês | Lições ilimitadas, recursos extras |
+| **PREMIUM Anual** | R$ 124/ano | Desconto anual |
+| **Vitalício** | R$ 299 | Pagamento único |
 
-- Integração completa com **Stripe** (Checkout + Webhooks)
-- **Paywall Modal** inteligente ao atingir limite diário
+- Stripe (Checkout + Webhooks) no backend
+- Paywall ao atingir limite diário
 
-### 🙏 Devocional Diário (estilo YouVersion)
-- Versículo em destaque
-- Texto de reflexão
-- Pergunta para meditar
-- Oração
-- **Compartilhamento social** (WhatsApp, Facebook, Instagram, Twitter/X)
-
-### ℹ️ Sobre / Contato
-- Informações do app e fontes usadas
-- **Pesquisa de satisfação** (avaliação 1-5 estrelas, categorias, mensagem, sugestão)
-- **Nodemailer** — envia email para o dev + confirmação para o usuário
+### 🙏 Devocional e feedback
+- Devocional diário e compartilhamento social
+- Pesquisa de satisfação + Nodemailer
 
 ---
 
@@ -99,24 +111,20 @@ verbovivo/
 
 ### Pré-requisitos
 - Node.js ≥ 18
-- MongoDB (local ou MongoDB Atlas)
-- Conta Stripe (para monetização)
-- Conta Gmail (para envio de emails)
+- MongoDB (local ou Atlas)
+- Stripe e Gmail (opcional para monetização/e-mail)
 
 ### 1. Backend
 
 ```bash
 cd backend
 npm install
-
-# Copiar e configurar variáveis de ambiente
 cp .env.example .env
 # Edite .env com suas credenciais
-
 npm run dev
 ```
 
-> API rodará em produção no Render: `https://meucaminhoback.onrender.com`
+> Produção (API): `https://meucaminhoback.onrender.com` (quando o serviço estiver no ar)
 
 ### 2. Frontend
 
@@ -126,9 +134,7 @@ npm install
 npm run dev
 ```
 
-> App rodará em produção (PWA instalável em mobile)
-
-### 3. Variáveis de Ambiente (.env backend)
+### 3. Variáveis de ambiente (backend)
 
 ```env
 PORT=3000
@@ -136,22 +142,22 @@ MONGO_URI=mongodb://localhost:27017/verbovivo
 JWT_SECRET=sua_chave_secreta_super_forte
 FRONTEND_URL=http://localhost:5173
 
-# Stripe
+# Stripe (opcional no MVP local)
 STRIPE_SECRET_KEY=sk_test_xxx
 STRIPE_PRICE_MONTHLY=price_xxx
 STRIPE_PRICE_ANNUAL=price_xxx
 STRIPE_PRICE_LIFETIME=price_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 
-# Email
-EMAIL_USER=verbovivo.app@gmail.com
+# Email (opcional no MVP local)
+EMAIL_USER=seu_app@gmail.com
 EMAIL_PASSWORD=sua_senha_de_app_gmail
 DEV_EMAIL=seu_email_pessoal@gmail.com
 ```
 
 ---
 
-## 🔌 Principais Endpoints da API
+## 🔌 Principais endpoints da API
 
 ### Autenticação
 | Método | Rota | Descrição |
@@ -160,97 +166,60 @@ DEV_EMAIL=seu_email_pessoal@gmail.com
 | POST | `/api/auth/login` | Login |
 | GET | `/api/auth/me` | Dados do usuário logado |
 
-### Lições
+### Lições / progresso
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | `/api/lessons/today` | Lição do dia (aplica limite diário) |
-| GET | `/api/lessons?category=poeticos` | Listar lições por categoria |
+| GET | `/api/lessons/today` | Lição do dia |
 | POST | `/api/lessons/:id/complete` | Completar lição (+XP) |
+| GET | `/api/progress/me` | Progresso do usuário |
 
-### Devocional
+### Devocional / assinatura / feedback
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/api/devotional/today` | Devocional do dia |
-| POST | `/api/devotional/:id/complete` | Marcar como lido (+10 XP) |
-
-### Assinatura (Stripe)
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/api/subscription/checkout` | Criar sessão de checkout |
-| POST | `/api/subscription/webhook` | Webhook Stripe (confirma pagamento) |
-| POST | `/api/subscription/cancel` | Cancelar assinatura |
-| GET | `/api/subscription/status` | Status da assinatura |
-
-### Feedback
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/api/feedback` | Enviar pesquisa de satisfação (envia email) |
+| POST | `/api/subscription/checkout` | Checkout Stripe |
+| POST | `/api/subscription/webhook` | Webhook Stripe |
+| POST | `/api/feedback` | Pesquisa de satisfação |
 
 ### Outros
-- `/api/plans` — Planos de leitura
-- `/api/progress/me` — Progresso do usuário
-- `/api/curiosities` — Curiosidades bíblicas
-- `/api/missions` — Missões
-- `/api/quiz` — Perguntas de revisão
-- `/api/theology` — Unidades de teologia
-- `/api/community` — Amigos, ranking, celebração
-- `/health` — Health check (para ping do cron-job.org)
+- `/api/plans`, `/api/curiosities`, `/api/missions`, `/api/quiz`, `/api/theology`, `/api/community`, `/api/bible`
+- `/health` — health check
 
 ---
 
-## 🏗️ Infraestrutura 100% Gratuita (para lançamento)
+## 🏗️ Infraestrutura (lançamento)
 
 | Camada | Serviço |
 |---|---|
-| Frontend | **Vercel** |
-| Backend | **Render** (ping a cada 14min via cron-job.org) |
-| Banco | **MongoDB Atlas** (512MB free tier) |
-| Imagens | **Cloudinary** |
-| Email | **Nodemailer + Gmail** |
-| Pagamentos | **Stripe** |
-| DNS/CDN | **Cloudflare** |
-| Monitor | **UptimeRobot** |
+| Frontend | Vercel / estático |
+| Backend | Render |
+| Banco | MongoDB Atlas |
+| Pagamentos | Stripe |
+| E-mail | Nodemailer + Gmail |
 
 ---
 
-## 📱 Publicação na Play Store
+## 📱 Android (Capacitor)
 
-Use **Capacitor** para empacotar o app React existente em WebView nativo Android:
+Estrutura `android/` e `capacitor.config.json` já no repositório. Para abrir no Android Studio:
 
 ```bash
-npm install @capacitor/core @capacitor/cli
-npx cap init
-npx cap add android
 npx cap open android
 ```
 
-Gere o AAB assinado e publique na Google Play Console (taxa única: **$25 USD**).
+Publicação na Play Console exige AAB assinado (taxa única da conta de desenvolvedor Google).
 
 ---
 
-## 📚 Fontes Legítimas e Gratuitas
-
-- **BibleProject** — Vídeos educacionais (bibleproject.com)
-- **Bible API** — Texto bíblico NVI/ARA gratuito
-- **BDB Lexicon** — Léxico hebraico
-- **BDAG Lexicon** — Léxico grego do NT
-- **Credos Históricos** — Apostólico, Niceia, Calcedônia (domínio público)
-- **Confissão de Westminster** — 1646 (domínio público)
-- **Got Questions** — Artigos apologéticos
-
----
-
-## 🎨 Identidade Visual
+## 🎨 Identidade visual
 
 | Elemento | Valor |
 |---|---|
 | Nome | Meu Caminho de Luz |
 | Slogan | A Palavra Viva |
-| Cor primária | `#297a2e` (Verde) |
-| Cor destaque | `#d97706` (Laranja/Streak) |
-| Cor Premium | `#8b5cf6` (Roxo) |
-| Fonte | IBM Plex Sans |
-| Símbolo | Livro aberto estilizado |
+| Cor primária | `#297a2e` |
+| Cor destaque | `#d97706` |
+| Cor Premium | `#8b5cf6` |
 
 ---
 
